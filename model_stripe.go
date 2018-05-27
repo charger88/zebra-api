@@ -67,5 +67,4 @@ func getRequiredKeyLength(chars string, expiration int) int {
 	requiredKeysTotalNumber := float64(config.AppropriateChanceToGuess) * float64(config.ExpectedStripesPerHour) * float64(config.AllowedBadAttempts) * hours
 	keyLength := math.Log(float64(requiredKeysTotalNumber)) / math.Log(float64(len(chars)))
 	return int(math.Max(math.Ceil(keyLength), float64(config.MinimalKeyLength)))
-
 }
