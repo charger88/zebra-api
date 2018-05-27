@@ -15,6 +15,7 @@ type StripeCreateRequest struct {
 	Data string `json:"data"`
 	Expiration int `json:"expiration"`
 	Mode string `json:"mode"`
+	Password string `json:"password"`
 }
 
 func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error) {
@@ -22,7 +23,7 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
-	// TODO Validate
+	// TODO Validate, including option "stripe-password-policy"
 	return sc, err
 }
 
@@ -31,7 +32,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
 	}
-	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode)
+	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password)
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
 	}
@@ -45,6 +46,7 @@ type StripeGetResponse struct {
 
 type StripeGetRequest struct {
 	Key string `json:"key"`
+	Password string `json:"password"`
 }
 
 func getStripeGetRequest(r *http.Request) (StripeGetRequest, error) {
@@ -52,7 +54,7 @@ func getStripeGetRequest(r *http.Request) (StripeGetRequest, error) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
-	// TODO Validate
+	// TODO Validate, including option "stripe-password-policy"
 	return sc, err
 }
 
@@ -70,6 +72,9 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	}
 	if stripe.Key != req.Key {
 		return 503, StripeGetResponse{}, nil
+	}
+	if stripe.Password != req.Password {
+		return 401, StripeGetResponse{}, errors.New("incorrect password")
 	}
 	return 200, StripeGetResponse{stripe.Data, stripe.Expiration}, nil
 }

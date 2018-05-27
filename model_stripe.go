@@ -11,6 +11,7 @@ type Stripe struct {
 	Key string `json:"key"`
 	Data string `json:"data"`
 	Expiration int `json:"expiration"`
+	Password string `json:"password"`
 }
 
 func loadStripeFromRedis(key string) (Stripe, error) {
@@ -30,7 +31,7 @@ func loadStripeFromRedis(key string) (Stripe, error) {
 	return stripe, nil
 }
 
-func createStripeInRedis(data string, expiration int, mode string) (Stripe, error) {
+func createStripeInRedis(data string, expiration int, mode string, password string) (Stripe, error) {
 	var chars string
 	if mode == "uppercase-lowercase-digits" {
 		chars = randomStringUcLcD
@@ -47,7 +48,7 @@ func createStripeInRedis(data string, expiration int, mode string) (Stripe, erro
 	requiredKeysTotalNumber := float64(config.AppropriateChanceToGuess) * float64(config.ExpectedStripesPerHour) * float64(config.AllowedBadAttempts) * hours
 	keyLength := math.Log(float64(requiredKeysTotalNumber)) / math.Log(float64(len(chars)))
 	key := randomString(int(math.Max(math.Ceil(keyLength), float64(config.MinimalKeyLength))), chars)
-	stripe := Stripe{key, data, int(time.Now().Unix()) + expiration}
+	stripe := Stripe{key, data, int(time.Now().Unix()) + expiration, password}
 	dat, err := json.Marshal(stripe)
 	if err != nil {
 		return Stripe{}, err
