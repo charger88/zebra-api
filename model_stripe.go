@@ -44,10 +44,7 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 	} else {
 		chars = randomStringUcLcD
 	}
-	hours := math.Max(float64(expiration) / 3600.0, 0.25)
-	requiredKeysTotalNumber := float64(config.AppropriateChanceToGuess) * float64(config.ExpectedStripesPerHour) * float64(config.AllowedBadAttempts) * hours
-	keyLength := math.Log(float64(requiredKeysTotalNumber)) / math.Log(float64(len(chars)))
-	key := randomString(int(math.Max(math.Ceil(keyLength), float64(config.MinimalKeyLength))), chars)
+	key := randomString(getRequiredKeyLength(chars, expiration), chars)
 	stripe := Stripe{key, data, int(time.Now().Unix()) + expiration, password}
 	dat, err := json.Marshal(stripe)
 	if err != nil {
@@ -63,4 +60,12 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 		return Stripe{}, errors.New("this code is already in use")
 	}
 	return stripe, nil
+}
+
+func getRequiredKeyLength(chars string, expiration int) int {
+	hours := math.Max(float64(expiration) / 3600.0, 0.25)
+	requiredKeysTotalNumber := float64(config.AppropriateChanceToGuess) * float64(config.ExpectedStripesPerHour) * float64(config.AllowedBadAttempts) * hours
+	keyLength := math.Log(float64(requiredKeysTotalNumber)) / math.Log(float64(len(chars)))
+	return int(math.Max(math.Ceil(keyLength), float64(config.MinimalKeyLength)))
+
 }
