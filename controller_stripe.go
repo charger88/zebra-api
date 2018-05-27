@@ -24,6 +24,7 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error) {
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
 	// TODO Validate, including option "stripe-password-policy"
+	// TODO Replace password with non-salt hash if not empty
 	return sc, err
 }
 
@@ -55,6 +56,7 @@ func getStripeGetRequest(r *http.Request) (StripeGetRequest, error) {
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
 	// TODO Validate, including option "stripe-password-policy"
+	// TODO Replace password with non-salt hash if not empty
 	return sc, err
 }
 
