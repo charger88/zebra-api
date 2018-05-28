@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
+	"crypto/md5"
+	"fmt"
 )
 
 type StripeCreateResponse struct {
@@ -24,7 +26,9 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error) {
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
 	// TODO Validate, including option "stripe-password-policy"
-	// TODO Replace password with non-salt hash if not empty
+	if sc.Password != "" {
+		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
+	}
 	return sc, err
 }
 
@@ -56,7 +60,9 @@ func getStripeGetRequest(r *http.Request) (StripeGetRequest, error) {
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
 	// TODO Validate, including option "stripe-password-policy"
-	// TODO Replace password with non-salt hash if not empty
+	if sc.Password != "" {
+		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
+	}
 	return sc, err
 }
 
