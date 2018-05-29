@@ -19,12 +19,14 @@ type ErrorJsonResponse struct {
 	Message string `json:"error-message"`
 }
 
-func initRouting(pattern string, callback Endpoint) {
+func initRouting(pattern string, callback Endpoint, public bool) {
 	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		var status int
 		var response JsonResponse
 		var err error
-		status, err = auth(r.Header)
+		if !public {
+			status, err = auth(r.Header)
+		}
 		if err == nil {
 			status, response, err = callback(r, Context{})
 		}

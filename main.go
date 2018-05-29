@@ -8,9 +8,9 @@ import (
 func main() {
 	loadConfig()
 	establishRedisConnection()
-	initRouting("/stripe-create", mStripeCreate)
-	initRouting("/stripe-get", mStripeGet)
-	initRouting("/app-config", mInfoConfig)
-	initRouting("/", mInfoPing)
+	initRouting("/stripe-create", mStripeCreate, false)
+	initRouting("/stripe-get", mStripeGet, false)
+	initRouting("/app-config", mInfoConfig, true)
+	initRouting("/", mInfoPing, true)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
