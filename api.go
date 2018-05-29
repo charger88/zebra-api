@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"errors"
 )
 
 type Endpoint func(*http.Request, Context) (int, JsonResponse, error)
@@ -20,9 +21,29 @@ type ErrorJsonResponse struct {
 
 func initRouting(pattern string, callback Endpoint) {
 	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		status, response, err := callback(r, Context{})
+		var status int
+		var response JsonResponse
+		var err error
+		status, err = auth(r.Header)
+		if err == nil {
+			status, response, err = callback(r, Context{})
+		}
 		sendResponse(status, response, err, w)
 	})
+}
+
+func auth(h http.Header) (int, error) {
+	var status int
+	var err error
+	apiKey := h.Get("X-Api-Key")
+	if config.RequireApiKey && (apiKey == "") {
+		status = 401
+		err = errors.New("header X-Api-Key is required")
+	} else if (apiKey != "") && !config.isApiKeyEnabled(apiKey) {
+		status = 401
+		err = errors.New("key from header X-Api-Key is not enabled")
+	}
+	return status, err
 }
 
 // TODO func initRoutingREST

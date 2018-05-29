@@ -14,6 +14,8 @@ type Config struct {
 	ExpectedStripesPerHour int `yaml:"expected-stripes-per-hour"`
 	AllowedBadAttempts int `yaml:"allowed-bad-attempts"`
 	AppropriateChanceToGuess int `yaml:"appropriate-chance-to-guess"`
+	RequireApiKey bool `yaml:"require-api-key"`
+	AllowedApiKeys []string `yaml:"allowed-api-keys"`
 }
 
 type RedisConfig struct {
@@ -36,4 +38,13 @@ func addFileDataToConfig(name string) {
 	if err != nil {
 		log.Fatal("Can't parse config file config/"  + name + ".yaml: " + err.Error())
 	}
+}
+
+func (c Config) isApiKeyEnabled(apiKey string) bool {
+	for _, b := range c.AllowedApiKeys {
+		if b == apiKey {
+			return true
+		}
+	}
+	return false
 }
