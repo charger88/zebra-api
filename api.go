@@ -19,8 +19,8 @@ type ErrorJsonResponse struct {
 	Message string `json:"error-message"`
 }
 
-func initRouting(pattern string, callback Endpoint, public bool) {
-	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+func initRouting(resource string, methods map[string]Endpoint, public bool) {
+	http.HandleFunc(resource, func(w http.ResponseWriter, r *http.Request) {
 		var status int
 		var response JsonResponse
 		var err error
@@ -28,7 +28,12 @@ func initRouting(pattern string, callback Endpoint, public bool) {
 			status, err = auth(r.Header)
 		}
 		if err == nil {
-			status, response, err = callback(r, Context{})
+			if methods[r.Method] != nil {
+				status, response, err = methods[r.Method](r, Context{})
+			} else {
+				status = 405
+				err = errors.New("method not allowed")
+			}
 		}
 		sendResponse(status, response, err, w)
 	})
@@ -47,8 +52,6 @@ func auth(h http.Header) (int, error) {
 	}
 	return status, err
 }
-
-// TODO func initRoutingREST
 
 func sendResponse(status int, resp JsonResponse, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-type", "application/json")

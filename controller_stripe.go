@@ -55,14 +55,14 @@ type StripeGetRequest struct {
 }
 
 func getStripeGetRequest(r *http.Request) (StripeGetRequest, error) {
+	var err error
 	var sc StripeGetRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&sc)
-	defer r.Body.Close()
-	// TODO Validate, including option "stripe-password-policy"
+	sc.Key = r.URL.Query().Get("key")
+	sc.Password = r.URL.Query().Get("password")
 	if sc.Password != "" {
 		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
 	}
+	// TODO Validate
 	return sc, err
 }
 

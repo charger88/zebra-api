@@ -8,9 +8,11 @@ import (
 func main() {
 	loadConfig()
 	establishRedisConnection()
-	initRouting("/stripe-create", mStripeCreate, false)
-	initRouting("/stripe-get", mStripeGet, false)
-	initRouting("/app-config", mInfoConfig, true)
-	initRouting("/", mInfoPing, true)
+	initRouting("/stripe", map[string]Endpoint{
+		http.MethodGet: mStripeGet,
+		http.MethodPost: mStripeCreate,
+	}, false)
+	initRouting("/app", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
+	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoPing}, true)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
