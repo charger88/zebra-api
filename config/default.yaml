@@ -1,6 +1,7 @@
 redis:
   host: "127.0.0.1"
   port: 6379
+http-port: 8080
 minimal-key-length: 4
 expected-stripes-per-hour: 1000
 allowed-bad-attempts: 5

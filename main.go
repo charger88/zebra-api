@@ -12,7 +12,7 @@ func main() {
 		http.MethodGet: mStripeGet,
 		http.MethodPost: mStripeCreate,
 	}, false)
-	initRouting("/app", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
-	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoPing}, true)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	initRouting("/ping", map[string]Endpoint{http.MethodGet: mInfoPing}, true)
+	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
+	log.Fatal(http.ListenAndServe(":" + config.HttpPort, nil))
 }
