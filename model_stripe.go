@@ -31,7 +31,7 @@ func loadStripeFromRedis(key string) (Stripe, error) {
 	return stripe, nil
 }
 
-func createStripeInRedis(data string, expiration int, mode string, password string) (Stripe, error) {
+func createStripeInRedis(data string, expiration int, mode string, password string, attempts int) (Stripe, error) {
 	var chars string
 	if mode == "uppercase-lowercase-digits" {
 		chars = randomStringUcLcD
@@ -56,8 +56,11 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 	}
 	val, _ := resp.Str()
 	if val != "OK" {
-		// TODO Retry for a few times
-		return Stripe{}, errors.New("this code is already in use")
+		if attempts < 3 {
+			return createStripeInRedis(data, expiration, mode, password, attempts + 1)
+		} else {
+			return Stripe{}, errors.New("this code is already in use")
+		}
 	}
 	return stripe, nil
 }

@@ -37,7 +37,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
 	}
-	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password)
+	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, 0)
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
 	}
