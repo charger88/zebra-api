@@ -8,4 +8,6 @@ allowed-bad-attempts: 5
 appropriate-chance-to-guess: 1000000000
 stripe-password-policy: "allowed"
 require-api-key: false
+allowed-shares-period: 60
+allowed-shares-number-in-period: 5
 allowed-api-keys:

@@ -17,6 +17,8 @@ type Config struct {
 	AppropriateChanceToGuess int `yaml:"appropriate-chance-to-guess"`
 	RequireApiKey bool `yaml:"require-api-key"`
 	AllowedApiKeys []string `yaml:"allowed-api-keys"`
+	AllowedSharesPeriod int `yaml:"allowed-shares-period"`
+	AllowedSharesNumberInPeriod int `yaml:"allowed-shares-number-in-period"`
 }
 
 type RedisConfig struct {

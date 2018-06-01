@@ -37,6 +37,10 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
 	}
+	_, rateLimitStatus := rateLimit("mStripeCreate", getIp(r), config.AllowedSharesNumberInPeriod, config.AllowedSharesPeriod)
+	if !rateLimitStatus {
+		return 429, StripeCreateResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", config.AllowedSharesPeriod))
+	}
 	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, 0)
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
@@ -71,6 +75,10 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	if err != nil {
 		return 503, StripeGetResponse{}, err
 	}
+	rateLimitKey, rateLimitStatus := rateLimit("mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
+	if !rateLimitStatus {
+		return 429, StripeCreateResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 60))
+	}
 	stripe, err := loadStripeFromRedis(req.Key)
 	if err != nil {
 		return 503, StripeGetResponse{}, err
@@ -84,5 +92,6 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	if stripe.Password != req.Password {
 		return 401, StripeGetResponse{}, errors.New("incorrect password")
 	}
+	deleteRateLimitRecord(rateLimitKey)
 	return 200, StripeGetResponse{stripe.Data, stripe.Expiration}, nil
 }
