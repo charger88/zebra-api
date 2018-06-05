@@ -6,6 +6,7 @@ import (
 	"errors"
 	"crypto/md5"
 	"fmt"
+	"regexp"
 )
 
 type StripeCreateResponse struct {
@@ -21,22 +22,31 @@ type StripeCreateRequest struct {
 	Password string `json:"password"`
 }
 
-func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error) {
+func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
 	var sc StripeCreateRequest
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
-	// TODO Validate, including option "stripe-password-policy"
+	if !validateData(sc.Data) {
+		return sc, errors.New("data: format validation failed"), 422
+	}
+	if config.PasswordPolicy == "disabled" {
+		if sc.Password != "" {
+			return sc, errors.New("password: field is not allowed"), 422
+		}
+	} else if !validatePassword(sc.Password, config.PasswordPolicy == "required") {
+		return sc, errors.New("password: format validation failed"), 422
+	}
 	if sc.Password != "" {
 		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
 	}
-	return sc, err
+	return sc, err, 400
 }
 
 func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
-	req, err := getStripeCreateRequest(r)
+	req, err, errStatus := getStripeCreateRequest(r)
 	if err != nil {
-		return 503, StripeCreateResponse{}, err
+		return errStatus, StripeCreateResponse{}, err
 	}
 	_, rateLimitStatus := rateLimit("mStripeCreate", getIp(r), config.AllowedSharesNumberInPeriod, config.AllowedSharesPeriod)
 	if !rateLimitStatus {
@@ -60,22 +70,27 @@ type StripeGetRequest struct {
 	Password string `json:"password"`
 }
 
-func getStripeGetRequest(r *http.Request) (StripeGetRequest, error) {
+func getStripeGetRequest(r *http.Request) (StripeGetRequest, error, int) {
 	var err error
 	var sc StripeGetRequest
 	sc.Key = r.URL.Query().Get("key")
+	if !validateKey(sc.Key) {
+		return sc, errors.New("key: format validation failed"), 422
+	}
 	sc.Password = r.URL.Query().Get("password")
 	if sc.Password != "" {
+		if !validatePassword(sc.Password, true) {
+			return sc, errors.New("password: format validation failed"), 422
+		}
 		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
 	}
-	// TODO Validate
-	return sc, err
+	return sc, err, 400
 }
 
 func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
-	req, err := getStripeGetRequest(r)
+	req, err, errStatus := getStripeGetRequest(r)
 	if err != nil {
-		return 503, StripeGetResponse{}, err
+		return errStatus, StripeGetResponse{}, err
 	}
 	rateLimitKey, rateLimitStatus := rateLimit("mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
 	if !rateLimitStatus {
@@ -110,4 +125,21 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	}
 	deleteRedisKey(rateLimitKey)
 	return 200, StripeGetResponse{stripe.Data, stripe.Expiration, stripe.Burn}, nil
+}
+
+func validateKey(key string) bool {
+	re := regexp.MustCompile("^([A-Za-z0-9]+)$")
+	return re.MatchString(key)
+}
+
+func validatePassword(password string, required bool) bool {
+	if required && (password == "") {
+		return false
+	}
+	re := regexp.MustCompile("^([A-Za-z0-9]+)$")
+	return re.MatchString(password)
+}
+
+func validateData(data string) bool {
+	return data != ""
 }

@@ -11,6 +11,7 @@ var config Config
 type Config struct {
 	Redis RedisConfig `yaml:"redis"`
 	HttpPort string `yaml:"http-port"`
+	PasswordPolicy string `yaml:"password-policy"`
 	MinimalKeyLength int `yaml:"minimal-key-length"`
 	ExpectedStripesPerHour int `yaml:"expected-stripes-per-hour"`
 	AllowedBadAttempts int `yaml:"allowed-bad-attempts"`

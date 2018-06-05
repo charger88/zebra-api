@@ -6,7 +6,7 @@ minimal-key-length: 4
 expected-stripes-per-hour: 1000
 allowed-bad-attempts: 5
 appropriate-chance-to-guess: 1000000000
-stripe-password-policy: "allowed"
+password-policy: "allowed"
 require-api-key: false
 allowed-shares-period: 60
 allowed-shares-number-in-period: 5
