@@ -12,6 +12,7 @@ type Stripe struct {
 	Data string `json:"data"`
 	Expiration int `json:"expiration"`
 	Password string `json:"password"`
+	Burn bool `json:"burn"`
 }
 
 func loadStripeFromRedis(key string) (Stripe, error) {
@@ -31,7 +32,7 @@ func loadStripeFromRedis(key string) (Stripe, error) {
 	return stripe, nil
 }
 
-func createStripeInRedis(data string, expiration int, mode string, password string, attempts int) (Stripe, error) {
+func createStripeInRedis(data string, expiration int, mode string, password string, burn bool, attempts int) (Stripe, error) {
 	var chars string
 	if mode == "uppercase-lowercase-digits" {
 		chars = randomStringUcLcD
@@ -45,7 +46,7 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 		chars = randomStringUcLcD
 	}
 	key := randomString(getRequiredKeyLength(chars, expiration), chars)
-	stripe := Stripe{key, data, int(time.Now().Unix()) + expiration, password}
+	stripe := Stripe{key, data, int(time.Now().Unix()) + expiration, password, burn}
 	dat, err := json.Marshal(stripe)
 	if err != nil {
 		return Stripe{}, err
@@ -57,7 +58,7 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 	val, _ := resp.Str()
 	if val != "OK" {
 		if attempts < 3 {
-			return createStripeInRedis(data, expiration, mode, password, attempts + 1)
+			return createStripeInRedis(data, expiration, mode, password, burn, attempts + 1)
 		} else {
 			return Stripe{}, errors.New("this code is already in use")
 		}

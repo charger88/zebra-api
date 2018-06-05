@@ -15,6 +15,7 @@ type StripeCreateResponse struct {
 
 type StripeCreateRequest struct {
 	Data string `json:"data"`
+	Burn bool `json:"burn"`
 	Expiration int `json:"expiration"`
 	Mode string `json:"mode"`
 	Password string `json:"password"`
@@ -41,7 +42,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 	if !rateLimitStatus {
 		return 429, StripeCreateResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", config.AllowedSharesPeriod))
 	}
-	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, 0)
+	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, req.Burn, 0)
 	if err != nil {
 		return 503, StripeCreateResponse{}, err
 	}
@@ -51,6 +52,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 type StripeGetResponse struct {
 	Data string `json:"data"`
 	Expiration int `json:"expiration"`
+	Burn bool`json:"burn"`
 }
 
 type StripeGetRequest struct {
@@ -83,6 +85,16 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	if err != nil {
 		return 503, StripeGetResponse{}, err
 	}
+	if stripe.Burn {
+		resp := redisClient.Cmd("SET", "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
+		if resp.Err != nil {
+			return 503, StripeGetResponse{}, resp.Err
+		}
+		val, _ := resp.Str()
+		if val != "OK" {
+			return 404, StripeGetResponse{}, errors.New("key not found")
+		}
+	}
 	if stripe.Key == "" {
 		return 404, StripeGetResponse{}, errors.New("key not found")
 	}
@@ -92,6 +104,10 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	if stripe.Password != req.Password {
 		return 401, StripeGetResponse{}, errors.New("incorrect password")
 	}
-	deleteRateLimitRecord(rateLimitKey)
-	return 200, StripeGetResponse{stripe.Data, stripe.Expiration}, nil
+	if stripe.Burn {
+		deleteRedisKey("STRIPE:" + stripe.Key)
+		deleteRedisKey("BURN:" + stripe.Key)
+	}
+	deleteRedisKey(rateLimitKey)
+	return 200, StripeGetResponse{stripe.Data, stripe.Expiration, stripe.Burn}, nil
 }

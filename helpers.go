@@ -47,7 +47,7 @@ func rateLimit(prefix string, value string, limit int, period int) (string, bool
 	return "", false
 }
 
-func deleteRateLimitRecord(key string){
+func deleteRedisKey(key string){
 	redisClient.Cmd("DEL", key)
 }
 
