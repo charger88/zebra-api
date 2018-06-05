@@ -7,36 +7,28 @@ import (
 
 var redisClient *redis.Client
 
-func establishRedisConnection() {
+func establishRedisConnection(fatal bool) {
 	var err error
 	redisClient, err = redis.Dial("tcp", config.Redis.Host + ":" + config.Redis.Port)
 	if err != nil {
-		log.Fatal("Redis connection problem: " + err.Error())
+		if fatal {
+			log.Fatal("Redis connection problem: " + err.Error())
+		} else {
+			log.Print("Redis connection problem: " + err.Error())
+		}
 	}
-	testRedisConnection()
+	if !testRedisConnection() {
+		if fatal {
+			log.Fatal("Redis test connection problem: " + err.Error())
+		} else {
+			log.Print("Redis test connection problem: " + err.Error())
+		}
+	}
 }
 
-// TODO Replace log.Fatal to something more smart
 func testRedisConnection() bool {
-	value := 1
-	key := "PING:" + randomString(32, randomStringLcD)
-	err := redisClient.Cmd("SET", key, value, "EX", 60).Err
+	err := redisClient.Cmd("SET", "TEST", 1, "EX", 1).Err
 	if err != nil {
-		log.Fatal("Redis connection problem: " + err.Error())
-		return false
-	}
-	resp := redisClient.Cmd("GET", key)
-	if resp.Err != nil {
-		log.Fatal("Redis connection problem: " + err.Error())
-		return false
-	}
-	lvalue, err := resp.Int()
-	if err != nil {
-		log.Fatal("Redis test problem: " + err.Error())
-		return false
-	}
-	if lvalue != value {
-		log.Fatal("Redis test problem: wrong test value")
 		return false
 	}
 	return true

@@ -7,7 +7,7 @@ import (
 
 func main() {
 	loadConfig()
-	establishRedisConnection()
+	establishRedisConnection(true)
 	initRouting("/stripe", map[string]Endpoint{
 		http.MethodGet: mStripeGet,
 		http.MethodPost: mStripeCreate,
