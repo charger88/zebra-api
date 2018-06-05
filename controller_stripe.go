@@ -100,6 +100,15 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	if err != nil {
 		return 503, StripeGetResponse{}, err
 	}
+	if stripe.Key == "" {
+		return 404, StripeGetResponse{}, errors.New("key not found")
+	}
+	if stripe.Key != req.Key {
+		return 503, StripeGetResponse{}, nil
+	}
+	if stripe.Password != req.Password {
+		return 401, StripeGetResponse{}, errors.New("incorrect password")
+	}
 	if stripe.Burn {
 		resp := redisClient.Cmd("SET", "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
 		if resp.Err != nil {
@@ -109,15 +118,6 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		if val != "OK" {
 			return 404, StripeGetResponse{}, errors.New("key not found")
 		}
-	}
-	if stripe.Key == "" {
-		return 404, StripeGetResponse{}, errors.New("key not found")
-	}
-	if stripe.Key != req.Key {
-		return 503, StripeGetResponse{}, nil
-	}
-	if stripe.Password != req.Password {
-		return 401, StripeGetResponse{}, errors.New("incorrect password")
 	}
 	if stripe.Burn {
 		deleteRedisKey("STRIPE:" + stripe.Key)
