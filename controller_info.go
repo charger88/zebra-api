@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 	"time"
-	"log"
 )
 
 type InfoPingResponse struct {
@@ -13,7 +12,6 @@ type InfoPingResponse struct {
 }
 
 func mInfoPing(r *http.Request, c Context) (int, JsonResponse, error) {
-	log.Print("Ping was called by " + r.UserAgent())
 	return 200, InfoPingResponse{time.Now().Unix(), true, testRedisConnection()}, nil
 }
 
