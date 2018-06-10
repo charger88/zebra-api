@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"errors"
+	"strings"
 )
 
 type Endpoint func(*http.Request, Context) (int, JsonResponse, error)
@@ -35,8 +36,17 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 			}
 		}
 		if err == nil {
-			if methods[r.Method] != nil {
-				status, response, err = methods[r.Method](r, Context{})
+			if methods[r.Method] != nil || r.Method == http.MethodOptions {
+				if methods[r.Method] != nil {
+					status, response, err = methods[r.Method](r, Context{})
+				} else {
+					status = 200
+				}
+				var allowedMethods []string
+				for k := range methods {
+					allowedMethods = append(allowedMethods, k)
+				}
+				w.Header().Set("Access-Control-Allow-Methods", strings.Join(allowedMethods, ","))
 			} else {
 				status = 405
 				err = errors.New("method not allowed")
@@ -61,6 +71,8 @@ func auth(h http.Header) (int, error) {
 }
 
 func sendResponse(status int, resp JsonResponse, err error, w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(status)
 	if status >= 400 {

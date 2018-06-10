@@ -30,6 +30,9 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
 	if !validateData(sc.Data) {
 		return sc, errors.New("data: format validation failed"), 422
 	}
+	if !validateExpiration(sc.Expiration) {
+		return sc, errors.New("expiration: validation failed"), 422
+	}
 	if config.PasswordPolicy == "disabled" {
 		if sc.Password != "" {
 			return sc, errors.New("password: field is not allowed"), 422
@@ -60,6 +63,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 }
 
 type StripeGetResponse struct {
+	Key string `json:"key"`
 	Data string `json:"data"`
 	Expiration int `json:"expiration"`
 	Burn bool`json:"burn"`
@@ -124,7 +128,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		deleteRedisKey("BURN:" + stripe.Key)
 	}
 	deleteRedisKey(rateLimitKey)
-	return 200, StripeGetResponse{stripe.Data, stripe.Expiration, stripe.Burn}, nil
+	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn}, nil
 }
 
 func validateKey(key string) bool {
@@ -138,6 +142,10 @@ func validatePassword(password string, required bool) bool {
 	}
 	re := regexp.MustCompile("^([A-Za-z0-9]+)$")
 	return re.MatchString(password)
+}
+
+func validateExpiration(expiration int) bool {
+	return (expiration >= 10) && (expiration <= 86400)
 }
 
 func validateData(data string) bool {

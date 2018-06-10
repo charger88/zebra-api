@@ -11,3 +11,5 @@ require-api-key: false
 allowed-shares-period: 60
 allowed-shares-number-in-period: 5
 allowed-api-keys:
+public-name: "Zebra Sharing Service"
+public-url: "https://127.0.0.1"

@@ -20,6 +20,8 @@ type Config struct {
 	AllowedApiKeys []string `yaml:"allowed-api-keys"`
 	AllowedSharesPeriod int `yaml:"allowed-shares-period"`
 	AllowedSharesNumberInPeriod int `yaml:"allowed-shares-number-in-period"`
+	PublicName string `yaml:"public-name"`
+	PublicURL string `yaml:"public-url"`
 }
 
 type RedisConfig struct {
