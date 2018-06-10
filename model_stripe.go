@@ -36,10 +36,10 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 	var chars string
 	if mode == "uppercase-lowercase-digits" {
 		chars = randomStringUcLcD
-	} else if mode == "lowercase-digits" {
-		chars = randomStringLcD
-	} else if mode == "lowercase" {
-		chars = randomStringLc
+	} else if mode == "uppercase-digits" {
+		chars = randomStringUcD
+	} else if mode == "uppercase" {
+		chars = randomStringUc
 	} else if mode == "digits" {
 		chars = randomStringD
 	} else {

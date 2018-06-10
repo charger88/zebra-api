@@ -11,8 +11,8 @@ import (
 var randomInitialized = false
 
 const randomStringUcLcD = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const randomStringLcD = "abcdefghijklmnopqrstuvwxyz0123456789"
-const randomStringLc = "abcdefghijklmnopqrstuvwxyz"
+const randomStringUcD = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const randomStringUc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const randomStringD = "0123456789"
 
 func randomString(n int, chars string) string {
