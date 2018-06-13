@@ -17,6 +17,7 @@ type Config struct {
 	AllowedBadAttempts int `yaml:"allowed-bad-attempts"`
 	AppropriateChanceToGuess int `yaml:"appropriate-chance-to-guess"`
 	RequireApiKey bool `yaml:"require-api-key"`
+	RequireApiKeyForPostOnly bool `yaml:"require-api-key-for-post-only"`
 	AllowedApiKeys []string `yaml:"allowed-api-keys"`
 	AllowedSharesPeriod int `yaml:"allowed-shares-period"`
 	AllowedSharesNumberInPeriod int `yaml:"allowed-shares-number-in-period"`

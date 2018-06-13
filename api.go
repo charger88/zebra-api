@@ -26,7 +26,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 		var response JsonResponse
 		var err error
 		if !public && (r.Method != http.MethodOptions) {
-			status, err = auth(r.Header)
+			status, err = auth(r)
 		}
 		if !testRedisConnection() {
 			establishRedisConnection(false)
@@ -56,11 +56,12 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 	})
 }
 
-func auth(h http.Header) (int, error) {
+func auth(r *http.Request) (int, error) {
 	var status int
 	var err error
-	apiKey := h.Get("X-Api-Key")
-	if config.RequireApiKey && (apiKey == "") {
+	requireKey := config.RequireApiKey && (!config.RequireApiKeyForPostOnly || config.RequireApiKeyForPostOnly && (r.Method == http.MethodPost))
+	apiKey := r.Header.Get("X-Api-Key")
+	if requireKey && (apiKey == "") {
 		status = 401
 		err = errors.New("header X-Api-Key is required")
 	} else if (apiKey != "") && !config.isApiKeyEnabled(apiKey) {
