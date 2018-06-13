@@ -111,7 +111,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		return 503, StripeGetResponse{}, nil
 	}
 	if stripe.Password != req.Password {
-		return 401, StripeGetResponse{}, errors.New("incorrect password")
+		return 403, StripeGetResponse{}, errors.New("incorrect password")
 	}
 	if stripe.Burn {
 		resp := redisClient.Cmd("SET", "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
@@ -126,6 +126,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	if stripe.Burn {
 		deleteRedisKey("STRIPE:" + stripe.Key)
 		deleteRedisKey("BURN:" + stripe.Key)
+		stripe.Expiration = 0
 	}
 	deleteRedisKey(rateLimitKey)
 	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn}, nil
@@ -140,8 +141,12 @@ func validatePassword(password string, required bool) bool {
 	if required && (password == "") {
 		return false
 	}
-	re := regexp.MustCompile("^([A-Za-z0-9]+)$")
-	return re.MatchString(password)
+	if password != "" {
+		re := regexp.MustCompile("^([A-Za-z0-9]+)$")
+		return re.MatchString(password)
+	} else {
+		return true
+	}
 }
 
 func validateExpiration(expiration int) bool {

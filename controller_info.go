@@ -16,11 +16,15 @@ func mInfoPing(r *http.Request, c Context) (int, JsonResponse, error) {
 type InfoConfigResponse struct {
 	Name string `json:"name"`
 	URL string `json:"url"`
+	Color string `json:"color"`
+	PasswordPolicy string `json:"password-policy"`
 }
 
 func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 	return 200, InfoConfigResponse{
 		config.PublicName,
 		config.PublicURL,
+		config.PublicColor,
+		config.PasswordPolicy,
 	}, nil
 }

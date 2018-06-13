@@ -21,6 +21,7 @@ type Config struct {
 	AllowedSharesPeriod int `yaml:"allowed-shares-period"`
 	AllowedSharesNumberInPeriod int `yaml:"allowed-shares-number-in-period"`
 	PublicName string `yaml:"public-name"`
+	PublicColor string `yaml:"public-color"`
 	PublicURL string `yaml:"public-url"`
 }
 
