@@ -25,7 +25,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 		var status int
 		var response JsonResponse
 		var err error
-		if !public {
+		if !public && (r.Method != http.MethodOptions) {
 			status, err = auth(r.Header)
 		}
 		if !testRedisConnection() {
@@ -71,8 +71,12 @@ func auth(h http.Header) (int, error) {
 }
 
 func sendResponse(status int, resp JsonResponse, err error, w http.ResponseWriter) {
+	allowedHeaders := []string{"Content-type"}
+	if config.RequireApiKey {
+		allowedHeaders = append(allowedHeaders, "X-API-Key")
+	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Headers", strings.Join(allowedHeaders, ","))
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(status)
 	if status >= 400 {

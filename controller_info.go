@@ -18,6 +18,7 @@ type InfoConfigResponse struct {
 	URL string `json:"url"`
 	Color string `json:"color"`
 	PasswordPolicy string `json:"password-policy"`
+	RequireApiKey bool `json:"require-api-key"`
 }
 
 func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
@@ -26,5 +27,6 @@ func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 		config.PublicURL,
 		config.PublicColor,
 		config.PasswordPolicy,
+		config.RequireApiKey,
 	}, nil
 }
