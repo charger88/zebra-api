@@ -59,7 +59,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 func auth(r *http.Request) (int, error) {
 	var status int
 	var err error
-	requireKey := config.RequireApiKey && (!config.RequireApiKeyForPostOnly || config.RequireApiKeyForPostOnly && (r.Method == http.MethodPost))
+	requireKey := config.RequireApiKey && (!config.RequireApiKeyForPostOnly || config.RequireApiKeyForPostOnly && (r.Method != http.MethodGet))
 	apiKey := r.Header.Get("X-Api-Key")
 	if requireKey && (apiKey == "") {
 		status = 401

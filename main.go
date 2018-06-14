@@ -12,6 +12,7 @@ func main() {
 	initRouting("/stripe", map[string]Endpoint{
 		http.MethodGet: mStripeGet,
 		http.MethodPost: mStripeCreate,
+		http.MethodDelete: mStripeDelete,
 	}, false)
 	initRouting("/ping", map[string]Endpoint{http.MethodGet: mInfoPing}, true)
 	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
