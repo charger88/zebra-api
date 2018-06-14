@@ -3,6 +3,7 @@ redis:
   port: 6379
 http-port: 8080
 minimal-key-length: 4
+config-reload-time: 60
 expected-stripes-per-hour: 1000
 allowed-bad-attempts: 5
 appropriate-chance-to-guess: 1000000000

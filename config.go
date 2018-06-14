@@ -4,6 +4,7 @@ import (
 	"github.com/go-yaml/yaml"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
 var config Config
@@ -14,6 +15,7 @@ type Config struct {
 	HttpPort string `yaml:"http-port"`
 	PasswordPolicy string `yaml:"password-policy"`
 	MinimalKeyLength int `yaml:"minimal-key-length"`
+	ConfigReloadTime int64 `yaml:"config-reload-time"`
 	ExpectedStripesPerHour int `yaml:"expected-stripes-per-hour"`
 	AllowedBadAttempts int `yaml:"allowed-bad-attempts"`
 	AppropriateChanceToGuess int `yaml:"appropriate-chance-to-guess"`
@@ -33,17 +35,34 @@ type RedisConfig struct {
 }
 
 func loadConfig() {
-	config = Config{}
-	addFileDataToConfig("default")
-	addFileDataToConfig("config")
+	var localConfig = Config{}
+	addFileDataToConfig("default", &localConfig)
+	addFileDataToConfig("config", &localConfig)
+	config = localConfig
 }
 
-func addFileDataToConfig(name string) {
+func reloadConfig() {
+	ticker := time.NewTicker(time.Duration(config.ConfigReloadTime) * time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <- ticker.C:
+				loadConfig()
+			case <- quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+}
+
+func addFileDataToConfig(name string, localConfig *Config) {
 	dat, err := ioutil.ReadFile("config/"  + name + ".yaml")
 	if err != nil {
 		log.Fatal("Can't load config file config/"  + name + ".yaml: " + err.Error())
 	}
-	err = yaml.Unmarshal(dat, &config)
+	err = yaml.Unmarshal(dat, localConfig)
 	if err != nil {
 		log.Fatal("Can't parse config file config/"  + name + ".yaml: " + err.Error())
 	}
