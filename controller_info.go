@@ -14,6 +14,7 @@ func mInfoPing(r *http.Request, c Context) (int, JsonResponse, error) {
 }
 
 type InfoConfigResponse struct {
+	Version string `json:"version"`
 	Name string `json:"name"`
 	URL string `json:"url"`
 	Color string `json:"color"`
@@ -24,6 +25,7 @@ type InfoConfigResponse struct {
 
 func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 	return 200, InfoConfigResponse{
+		config.Version,
 		config.PublicName,
 		config.PublicURL,
 		config.PublicColor,

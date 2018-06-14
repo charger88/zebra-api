@@ -9,6 +9,7 @@ import (
 var config Config
 
 type Config struct {
+	Version string `yaml:"version"`
 	Redis RedisConfig `yaml:"redis"`
 	HttpPort string `yaml:"http-port"`
 	PasswordPolicy string `yaml:"password-policy"`
