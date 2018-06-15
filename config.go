@@ -27,6 +27,7 @@ type Config struct {
 	PublicName string `yaml:"public-name"`
 	PublicColor string `yaml:"public-color"`
 	PublicURL string `yaml:"public-url"`
+	ExtendedLogs bool `yaml:"extended-logs"`
 }
 
 type RedisConfig struct {

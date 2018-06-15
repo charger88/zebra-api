@@ -16,3 +16,4 @@ allowed-api-keys:
 public-name: "Zebra Sharing Service"
 public-color: "#000000"
 public-url: "https://127.0.0.1"
+extended-logs: false

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/mediocregopher/radix.v2/redis"
 	"net/http"
+	"log"
+	"strings"
 )
 
 var randomInitialized = false
@@ -57,4 +59,17 @@ func getIp(r *http.Request) string {
 		ip = r.RemoteAddr
 	}
 	return ip
+}
+
+func extendedLog(r *http.Request, message string){
+	if config.ExtendedLogs {
+		ip := r.RemoteAddr
+		ipPort := strings.Split(ip, ":")
+		if ipPort[0] != "127.0.0.1" {
+			ip = r.Header.Get("X-Forwarded-For")
+		} else {
+			ip = ipPort[0]
+		}
+		log.Print(r.Method + " " + r.RequestURI + " - " + ip + " - " + message)
+	}
 }

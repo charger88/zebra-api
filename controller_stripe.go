@@ -50,16 +50,20 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
 func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 	req, err, errStatus := getStripeCreateRequest(r)
 	if err != nil {
+		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeCreateResponse{}, err
 	}
 	_, rateLimitStatus := rateLimit("mStripeCreate", getIp(r), config.AllowedSharesNumberInPeriod, config.AllowedSharesPeriod)
 	if !rateLimitStatus {
+		extendedLog(r, "rate limit violation")
 		return 429, StripeCreateResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", config.AllowedSharesPeriod))
 	}
 	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, req.Burn, 0)
 	if err != nil {
+		extendedLog(r, "stripe was not saved in Redis: " + err.Error())
 		return 503, StripeCreateResponse{}, err
 	}
+	extendedLog(r, "stripe was created")
 	return 201, StripeCreateResponse{stripe.Key, stripe.Expiration, stripe.OwnerKey}, nil
 }
 
@@ -95,23 +99,29 @@ func getStripeGetRequest(r *http.Request) (StripeGetRequest, error, int) {
 func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	req, err, errStatus := getStripeGetRequest(r)
 	if err != nil {
+		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeGetResponse{}, err
 	}
 	rateLimitKey, rateLimitStatus := rateLimit("mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
 	if !rateLimitStatus {
+		extendedLog(r, "rate limit violation")
 		return 429, StripeGetResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 60))
 	}
 	stripe, err := loadStripeFromRedis(req.Key)
 	if err != nil {
+		extendedLog(r, "can't load stripe " + req.Key + " from redis: " + err.Error())
 		return 503, StripeGetResponse{}, err
 	}
 	if stripe.Key == "" {
+		extendedLog(r, "stripe not found")
 		return 404, StripeGetResponse{}, errors.New("key not found")
 	}
 	if stripe.Key != req.Key {
+		extendedLog(r, "incorrect key for stripe " + stripe.Key)
 		return 503, StripeGetResponse{}, nil
 	}
 	if stripe.Password != req.Password {
+		extendedLog(r, "incorrect password for stripe " + stripe.Key)
 		return 403, StripeGetResponse{}, errors.New("incorrect password")
 	}
 	if stripe.Burn {
@@ -130,6 +140,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		stripe.Expiration = 0
 	}
 	deleteRedisKey(rateLimitKey)
+	extendedLog(r, "stripe " + stripe.Key + " was retrieved")
 	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn}, nil
 }
 
@@ -159,23 +170,29 @@ func getStripeDeleteRequest(r *http.Request) (StripeDeleteRequest, error, int) {
 func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 	req, err, errStatus := getStripeDeleteRequest(r)
 	if err != nil {
+		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeGetResponse{}, err
 	}
 	rateLimitKey, rateLimitStatus := rateLimit("mStripeDelete", getIp(r), 1, 600)
 	if !rateLimitStatus {
+		extendedLog(r, "rate limit violation")
 		return 429, StripeDeleteResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 60))
 	}
 	stripe, err := loadStripeFromRedis(req.Key)
 	if err != nil {
+		extendedLog(r, "can't load stripe " + req.Key + " from redis: " + err.Error())
 		return 503, StripeDeleteResponse{}, err
 	}
 	if stripe.Key == "" {
+		extendedLog(r, "stripe not found " + stripe.Key)
 		return 404, StripeDeleteResponse{}, errors.New("key not found")
 	}
 	if stripe.Key != req.Key {
+		extendedLog(r, "incorrect key for stripe " + stripe.Key)
 		return 503, StripeDeleteResponse{}, nil
 	}
 	if stripe.OwnerKey != req.OwnerKey {
+		extendedLog(r, "incorrect owner key for stripe " + stripe.Key)
 		return 403, StripeDeleteResponse{}, errors.New("incorrect owner key")
 	}
 	if stripe.Burn {
@@ -190,6 +207,7 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 	}
 	deleteRedisKey("STRIPE:" + stripe.Key)
 	deleteRedisKey(rateLimitKey)
+	extendedLog(r, "stripe " + stripe.Key + " was deleted")
 	return 200, StripeDeleteResponse{true}, nil
 }
 
