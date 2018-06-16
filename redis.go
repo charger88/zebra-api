@@ -9,7 +9,15 @@ var redisClient *redis.Client
 
 func establishRedisConnection(fatal bool) {
 	var err error
-	redisClient, err = redis.Dial("tcp", config.Redis.Host + ":" + config.Redis.Port)
+	connectionString := config.Redis.Host + ":" + config.Redis.Port
+	redisClient, err = redis.Dial("tcp", connectionString)
+	if config.Redis.Password != "" {
+		res := redisClient.Cmd("AUTH", config.Redis.Password)
+		if  res.Err != nil {
+			redisClient.Close()
+			log.Fatal("Redis connection problem: " + res.Err.Error())
+		}
+	}
 	if err != nil {
 		if fatal {
 			log.Fatal("Redis connection problem: " + err.Error())
@@ -17,7 +25,8 @@ func establishRedisConnection(fatal bool) {
 			log.Print("Redis connection problem: " + err.Error())
 		}
 	}
-	if !testRedisConnection() {
+	err = testRedisConnection()
+	if err != nil {
 		if fatal {
 			log.Fatal("Redis test connection problem: " + err.Error())
 		} else {
@@ -26,10 +35,10 @@ func establishRedisConnection(fatal bool) {
 	}
 }
 
-func testRedisConnection() bool {
+func testRedisConnection() error {
 	err := redisClient.Cmd("SET", "TEST", 1, "EX", 1).Err
 	if err != nil {
-		return false
+		return err
 	}
-	return true
+	return nil
 }

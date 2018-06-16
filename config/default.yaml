@@ -1,6 +1,7 @@
 redis:
   host: "127.0.0.1"
   port: 6379
+  password:
 http-port: 8080
 minimal-key-length: 4
 config-reload-time: 60
