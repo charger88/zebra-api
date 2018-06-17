@@ -60,7 +60,7 @@ func reloadConfig() {
 }
 
 func addFileDataToConfig(name string, localConfig *Config) {
-	dat, err := ioutil.ReadFile("config/"  + name + ".yaml")
+	dat, err := ioutil.ReadFile("./config/"  + name + ".yaml")
 	if err != nil {
 		log.Fatal("Can't load config file config/"  + name + ".yaml: " + err.Error())
 	}
