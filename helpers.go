@@ -67,6 +67,9 @@ func extendedLog(r *http.Request, message string){
 		ipPort := strings.Split(ip, ":")
 		if ipPort[0] != "127.0.0.1" {
 			ip = r.Header.Get("X-Forwarded-For")
+			if ip == "" {
+				ip = r.RemoteAddr
+			}
 		} else {
 			ip = ipPort[0]
 		}
