@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"log"
 	"strings"
+	"net"
 )
 
 var randomInitialized = false
@@ -54,25 +55,30 @@ func deleteRedisKey(key string){
 }
 
 func getIp(r *http.Request) string {
-	ip := r.Header.Get("X-Forwarded-For")
-	if ip != "" {
-		ip = r.RemoteAddr
+	ip := r.RemoteAddr
+	ip = strings.Split(ip, ":")[0]
+	if isTrustedProxy(ip) {
+		if r.Header.Get("X-Forwarded-For") != "" {
+			ip = r.Header.Get("X-Forwarded-For")
+		}
 	}
 	return ip
 }
 
+func isTrustedProxy(ip string) bool {
+	ipObj := net.ParseIP(ip)
+	var tpNet *net.IPNet
+	for _, tp := range config.TrustedProxy {
+		_, tpNet, _ = net.ParseCIDR(tp)
+		if tpNet.Contains(ipObj) {
+			return true
+		}
+	}
+	return false
+}
+
 func extendedLog(r *http.Request, message string){
 	if config.ExtendedLogs {
-		ip := r.RemoteAddr
-		ipPort := strings.Split(ip, ":")
-		if ipPort[0] != "127.0.0.1" {
-			ip = r.Header.Get("X-Forwarded-For")
-			if ip == "" {
-				ip = r.RemoteAddr
-			}
-		} else {
-			ip = ipPort[0]
-		}
-		log.Print(r.Method + " " + r.RequestURI + " - " + ip + " - " + message)
+		log.Print(r.Method + " " + r.RequestURI + " - " + getIp(r) + " - " + message)
 	}
 }

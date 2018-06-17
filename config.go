@@ -13,6 +13,7 @@ type Config struct {
 	Version string `yaml:"version"`
 	Redis RedisConfig `yaml:"redis"`
 	HttpPort string `yaml:"http-port"`
+	TrustedProxy []string `yaml:"trusted-proxy"`
 	PasswordPolicy string `yaml:"password-policy"`
 	MinimalKeyLength int `yaml:"minimal-key-length"`
 	ConfigReloadTime int64 `yaml:"config-reload-time"`
