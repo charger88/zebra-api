@@ -34,3 +34,11 @@ func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 		config.RequireApiKeyForPostOnly,
 	}, nil
 }
+
+type InfoRoutesResponse struct {
+	Routes map[string][]string `json:"routes"`
+}
+
+func mInfoRoutes(r *http.Request, c Context) (int, JsonResponse, error) {
+	return 200, InfoRoutesResponse{routeResources}, nil
+}

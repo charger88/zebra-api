@@ -20,7 +20,15 @@ type ErrorJsonResponse struct {
 	Message string `json:"error-message"`
 }
 
+var routeResources = map[string][]string{}
+
 func initRouting(resource string, methods map[string]Endpoint, public bool) {
+	var methodsList []string
+	for m := range methods {
+		methodsList = append(methodsList, m)
+	}
+	methodsList = append(methodsList, "OPTIONS")
+	routeResources[resource] = methodsList
 	http.HandleFunc(resource, func(w http.ResponseWriter, r *http.Request) {
 		var status int
 		var response JsonResponse
