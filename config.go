@@ -11,7 +11,9 @@ var config Config
 
 type Config struct {
 	Version string `yaml:"version"`
-	Redis RedisConfig `yaml:"redis"`
+	RedisHost string `yaml:"redis-host"`
+	RedisPort string `yaml:"redis-port"`
+	RedisPassword string `yaml:"redis-password"`
 	HttpPort string `yaml:"http-port"`
 	TrustedProxy []string `yaml:"trusted-proxy"`
 	PasswordPolicy string `yaml:"password-policy"`
@@ -29,12 +31,6 @@ type Config struct {
 	PublicColor string `yaml:"public-color"`
 	PublicURL string `yaml:"public-url"`
 	ExtendedLogs bool `yaml:"extended-logs"`
-}
-
-type RedisConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-	Password string `yaml:"password"`
 }
 
 func loadConfig() {

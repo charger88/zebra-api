@@ -9,10 +9,10 @@ var redisClient *redis.Client
 
 func establishRedisConnection(fatal bool) {
 	var err error
-	connectionString := config.Redis.Host + ":" + config.Redis.Port
+	connectionString := config.RedisHost + ":" + config.RedisPort
 	redisClient, err = redis.Dial("tcp", connectionString)
-	if config.Redis.Password != "" {
-		res := redisClient.Cmd("AUTH", config.Redis.Password)
+	if config.RedisPassword != "" {
+		res := redisClient.Cmd("AUTH", config.RedisPassword)
 		if  res.Err != nil {
 			redisClient.Close()
 			log.Fatal("Redis connection problem: " + res.Err.Error())
