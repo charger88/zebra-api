@@ -7,6 +7,7 @@ import (
 
 func main() {
 	loadConfig()
+	log.Print("Starting Zebra API v. " + config.Version)
 	reloadConfig()
 	establishRedisConnection(true)
 	initRouting("/stripe", map[string]Endpoint{
@@ -16,5 +17,6 @@ func main() {
 	}, false)
 	initRouting("/ping", map[string]Endpoint{http.MethodGet: mInfoPing}, true)
 	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
+	log.Print("Started Zebra API v. " + config.Version)
 	log.Fatal(http.ListenAndServe(":" + config.HttpPort, nil))
 }
