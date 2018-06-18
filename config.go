@@ -34,6 +34,7 @@ type Config struct {
 	PublicName string `yaml:"public-name"`
 	PublicColor string `yaml:"public-color"`
 	PublicURL string `yaml:"public-url"`
+	PublicEmail string `yaml:"public-email"`
 	ExtendedLogs bool `yaml:"extended-logs"`
 }
 
