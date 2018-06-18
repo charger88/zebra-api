@@ -64,13 +64,11 @@ func reloadConfig() {
 
 func addFileDataToConfig(name string, localConfig *Config, strict bool) {
 	dat, err := ioutil.ReadFile("./config/"  + name + ".yaml")
-	var message string
 	if err != nil {
-		message = "Can't load config file config/" + name + ".yaml: " + err.Error()
 		if strict {
-			log.Fatal(message)
+			log.Fatal("Can't load config file config/" + name + ".yaml: " + err.Error())
 		} else {
-			log.Print(message)
+			log.Print("Skip config file config/" + name + ".yaml")
 		}
 		return
 	}
