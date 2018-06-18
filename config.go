@@ -5,6 +5,10 @@ import (
 	"io/ioutil"
 	"log"
 	"time"
+	"reflect"
+	"strings"
+	"os"
+	"strconv"
 )
 
 var config Config
@@ -36,6 +40,8 @@ type Config struct {
 func loadConfig() {
 	var localConfig = Config{}
 	addFileDataToConfig("default", &localConfig)
+	buildEnvironmentConfig(&localConfig)
+	addFileDataToConfig("env", &localConfig)
 	addFileDataToConfig("config", &localConfig)
 	config = localConfig
 }
@@ -64,6 +70,48 @@ func addFileDataToConfig(name string, localConfig *Config) {
 	err = yaml.Unmarshal(dat, localConfig)
 	if err != nil {
 		log.Fatal("Can't parse config file config/"  + name + ".yaml: " + err.Error())
+	}
+}
+
+func buildEnvironmentConfig(localConfig *Config){
+	v := reflect.ValueOf(*localConfig)
+	var key string
+	var envVal string
+	var fType string
+	var yamlKey string
+	var envValBool bool
+	var envValStrings []string
+	configString := ""
+	for i := 0; i < v.NumField(); i++ {
+		yamlKey = v.Type().Field(i).Tag.Get("yaml")
+		key = "ZEBRA_" + strings.ToUpper(strings.Replace(yamlKey,"-", "_", -1))
+		envVal = os.Getenv(key)
+		if envVal != "" {
+			fType = v.Type().Field(i).Type.String()
+			configString += yamlKey + ": "
+			if strings.Index(fType, "[]") == 0 {
+				envValStrings = strings.Split(envVal, ",")
+				for _, envValStringsItem := range envValStrings {
+					configString += "\n  - \"" + envValStringsItem + "\""
+				}
+			} else if fType == "int" {
+				configString += envVal
+			} else if fType == "bool" {
+				envValBool, _ = strconv.ParseBool(envVal)
+				if envValBool {
+					configString += "true"
+				} else {
+					configString += "false"
+				}
+			} else {
+				configString += "\"" + envVal + "\""
+			}
+			configString += "\n"
+		}
+	}
+	err := ioutil.WriteFile("./config/env.yaml", []byte(configString), 0644)
+	if err != nil {
+		log.Fatal("Can't create config/env.yaml")
 	}
 }
 
