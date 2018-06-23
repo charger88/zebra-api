@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
-	"crypto/md5"
 	"fmt"
 	"regexp"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type StripeCreateResponse struct {
@@ -42,7 +42,11 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
 		return sc, errors.New("password: format validation failed"), 422
 	}
 	if sc.Password != "" {
-		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
+		hash, err := bcrypt.GenerateFromPassword([]byte(sc.Password), bcrypt.DefaultCost)
+		if err != nil {
+			extendedLog(r, "password hashing error: " + err.Error())
+		}
+		sc.Password = string(hash)
 	}
 	return sc, err, 400
 }
@@ -91,7 +95,6 @@ func getStripeGetRequest(r *http.Request) (StripeGetRequest, error, int) {
 		if !validatePassword(sc.Password, true) {
 			return sc, errors.New("password: format validation failed"), 422
 		}
-		sc.Password = fmt.Sprintf("%x", md5.Sum([]byte(sc.Password)))
 	}
 	return sc, err, 400
 }
@@ -120,8 +123,9 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "incorrect key for stripe " + stripe.Key)
 		return 503, StripeGetResponse{}, nil
 	}
-	if stripe.Password != req.Password {
-		extendedLog(r, "incorrect password for stripe " + stripe.Key)
+	err = bcrypt.CompareHashAndPassword([]byte(stripe.Password), []byte(req.Password))
+	if err != nil {
+		extendedLog(r, "incorrect password for stripe " + stripe.Key + ": " + err.Error())
 		return 403, StripeGetResponse{}, errors.New("incorrect password")
 	}
 	if stripe.Burn {
