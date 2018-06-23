@@ -123,10 +123,12 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "incorrect key for stripe " + stripe.Key)
 		return 503, StripeGetResponse{}, nil
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(stripe.Password), []byte(req.Password))
-	if err != nil {
-		extendedLog(r, "incorrect password for stripe " + stripe.Key + ": " + err.Error())
-		return 403, StripeGetResponse{}, errors.New("incorrect password")
+	if (stripe.Password != "") || (req.Password != "") {
+		err = bcrypt.CompareHashAndPassword([]byte(stripe.Password), []byte(req.Password))
+		if err != nil {
+			extendedLog(r, "incorrect password for stripe "+stripe.Key+": "+err.Error())
+			return 403, StripeGetResponse{}, errors.New("incorrect password")
+		}
 	}
 	if stripe.Burn {
 		resp := redisClient.Cmd("SET", "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
