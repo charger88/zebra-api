@@ -17,7 +17,7 @@ allowed-shares-period: 60
 allowed-shares-number-in-period: 5
 allowed-api-keys:
 public-name: "Zebra Sharing Service"
-public-color: "#000000"
+public-color: "#425766"
 public-url: "https://127.0.0.1/"
 public-email: ""
 extended-logs: false
