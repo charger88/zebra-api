@@ -36,13 +36,15 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 		if !public && (r.Method != http.MethodOptions) {
 			status, err = auth(r)
 		}
-		err = testRedisConnection()
-		if err != nil {
-			establishRedisConnection(false)
+		if err == nil {
 			err = testRedisConnection()
 			if err != nil {
-				status = 503
-				err = errors.New("service temporary unavailable")
+				establishRedisConnection(false)
+				err = testRedisConnection()
+				if err != nil {
+					status = 503
+					err = errors.New("service temporary unavailable")
+				}
 			}
 		}
 		if err == nil {
