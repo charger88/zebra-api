@@ -10,6 +10,7 @@ config-reload-time: 60
 expected-stripes-per-hour: 1000
 allowed-bad-attempts: 5
 appropriate-chance-to-guess: 1000000000
+max-expiration-time: 86400
 password-policy: "allowed"
 require-api-key: false
 require-api-key-for-post-only: true

@@ -19,6 +19,7 @@ type InfoConfigResponse struct {
 	URL string `json:"url"`
 	Email string `json:"email"`
 	Color string `json:"color"`
+	MaxExpirationTime int `json:"max-expiration-time"`
 	PasswordPolicy string `json:"password-policy"`
 	RequireApiKey bool `json:"require-api-key"`
 	RequireApiKeyForPostOnly bool `json:"require-api-key-for-post-only"`
@@ -31,6 +32,7 @@ func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 		config.PublicURL,
 		config.PublicEmail,
 		config.PublicColor,
+		config.MaxExpirationTime,
 		config.PasswordPolicy,
 		config.RequireApiKey,
 		config.RequireApiKeyForPostOnly,

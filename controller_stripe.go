@@ -235,7 +235,7 @@ func validatePassword(password string, required bool) bool {
 }
 
 func validateExpiration(expiration int) bool {
-	return (expiration >= 10) && (expiration <= 86400)
+	return (expiration >= 10) && (expiration <= config.MaxExpirationTime)
 }
 
 func validateData(data string) bool {

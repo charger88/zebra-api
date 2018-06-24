@@ -20,6 +20,7 @@ type Config struct {
 	RedisPassword string `yaml:"redis-password"`
 	HttpPort string `yaml:"http-port"`
 	TrustedProxy []string `yaml:"trusted-proxy"`
+	MaxExpirationTime int `yaml:"max-expiration-time"`
 	PasswordPolicy string `yaml:"password-policy"`
 	MinimalKeyLength int `yaml:"minimal-key-length"`
 	ConfigReloadTime int64 `yaml:"config-reload-time"`
