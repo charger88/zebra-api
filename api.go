@@ -86,7 +86,7 @@ func auth(r *http.Request) (int, error) {
 func sendResponse(status int, resp JsonResponse, err error, w http.ResponseWriter) {
 	allowedHeaders := []string{"Content-type"}
 	if config.RequireApiKey {
-		allowedHeaders = append(allowedHeaders, "X-API-Key")
+		allowedHeaders = append(allowedHeaders, "X-Api-Key")
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", strings.Join(allowedHeaders, ","))
