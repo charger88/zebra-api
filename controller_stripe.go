@@ -21,6 +21,7 @@ type StripeCreateRequest struct {
 	Expiration int `json:"expiration"`
 	Mode string `json:"mode"`
 	Password string `json:"password"`
+	EncryptedWithClientSidePassword bool `json:"encrypted-with-client-side-password"`
 }
 
 func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
@@ -40,6 +41,13 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
 		}
 	} else if !validatePassword(sc.Password, config.PasswordPolicy == "required") {
 		return sc, errors.New("password: format validation failed"), 422
+	}
+	if config.EncryptionPasswordPolicy == "disabled" {
+		if sc.EncryptedWithClientSidePassword {
+			return sc, errors.New("client-side encryption password: not allowed"), 422
+		}
+	} else if !sc.EncryptedWithClientSidePassword && config.EncryptionPasswordPolicy == "required" {
+		return sc, errors.New("client-side encryption password: not provided"), 422
 	}
 	if sc.Password != "" {
 		hash, err := bcrypt.GenerateFromPassword([]byte(sc.Password), bcrypt.DefaultCost)
@@ -62,7 +70,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "rate limit violation")
 		return 429, StripeCreateResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", config.AllowedSharesPeriod))
 	}
-	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, req.Burn, 0)
+	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, req.Burn, req.EncryptedWithClientSidePassword, 0)
 	if err != nil {
 		extendedLog(r, "stripe was not saved in Redis: " + err.Error())
 		return 503, StripeCreateResponse{}, err
@@ -76,6 +84,7 @@ type StripeGetResponse struct {
 	Data string `json:"data"`
 	Expiration int `json:"expiration"`
 	Burn bool`json:"burn"`
+	EncryptedWithClientSidePassword bool `json:"encrypted-with-client-side-password"`
 }
 
 type StripeGetRequest struct {
@@ -147,7 +156,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	}
 	deleteRedisKey(rateLimitKey)
 	extendedLog(r, "stripe " + stripe.Key + " was retrieved")
-	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn}, nil
+	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn, stripe.EncryptedWithSpecialPassword}, nil
 }
 
 type StripeDeleteResponse struct {

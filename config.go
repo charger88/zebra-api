@@ -22,6 +22,7 @@ type Config struct {
 	TrustedProxy []string `yaml:"trusted-proxy"`
 	MaxExpirationTime int `yaml:"max-expiration-time"`
 	PasswordPolicy string `yaml:"password-policy"`
+	EncryptionPasswordPolicy string `yaml:"encryption-password-policy"`
 	MinimalKeyLength int `yaml:"minimal-key-length"`
 	ConfigReloadTime int64 `yaml:"config-reload-time"`
 	ExpectedStripesPerHour int `yaml:"expected-stripes-per-hour"`

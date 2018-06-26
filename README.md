@@ -70,6 +70,10 @@ File `config/config.yaml` has more priority than environmental variables.
     * `allowed` - password for shared text is optional
     * `required` - password for shared text is required
     * `disabled` - password for shared text not allowed
+* __encryption-password-policy__ (`string`, `"allowed"`) - option for client application, possible values are:
+    * `allowed` - (different) encryption password for shared text is optional
+    * `required` - (different) encryption password for shared text is required
+    * `disabled` - (different) encryption password for shared text not allowed
 * __require-api-key__ (`boolean`, `false`) - require `X-Api-Key`
 * __require-api-key-for-post-only__ (`boolean`, `true`) - require `X-Api-Key` for text sharing only (`require-api-key` should be `true`)
 * __allowed-api-keys__ (`string[]`) - list of appropriate values of `X-Api-Key` header 
@@ -124,6 +128,7 @@ All API routes also support `OPTIONS` HTTP method.
 * __email__ - administrator's email (from config __public-email__)
 * __color__ - color for client (from config __public-color__)
 * __max-expiration-time__ - max expiration time (from config __max-expiration-time__)
+* __encryption-password-policy__ - client-side encryption password policy (from config __password-policy__)
 * __password-policy__ - password policy (from config __password-policy__)
 * __require-api-key__ - require API key configuration (from config __require-api-key__)
 * __require-api-key-for-post-only__ - require API key for POST only configuration (from config __require-api-key-for-post-only__)
@@ -152,6 +157,7 @@ All API routes also support `OPTIONS` HTTP method.
 * __burn__ - `true` to delete after the first opening
 * __expiration__ - expiration in seconds
 * __mode__ - key generation mode (`uppercase-lowercase-digits`, `uppercase-digits`, `uppercase`, `digits`)
+* __encrypted-with-client-side-password__ - confirmation of encryption on client-side with client-side password
 * __password__ -  password _(optional)_
 
 ##### Response (json)
