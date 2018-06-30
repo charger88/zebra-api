@@ -18,6 +18,7 @@ type Config struct {
 	RedisHost string `yaml:"redis-host"`
 	RedisPort string `yaml:"redis-port"`
 	RedisPassword string `yaml:"redis-password"`
+	HttpInterface string `yaml:"http-interface"`
 	HttpPort string `yaml:"http-port"`
 	TrustedProxy []string `yaml:"trusted-proxy"`
 	MaxExpirationTime int `yaml:"max-expiration-time"`

@@ -2,6 +2,7 @@ version: "1.0.0"
 redis-host: "127.0.0.1"
 redis-port: 6379
 redis-password:
+http-interface:
 http-port: 8080
 trusted-proxy:
   - "127.0.0.1/32"

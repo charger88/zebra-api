@@ -48,6 +48,7 @@ File `config/config.yaml` has more priority than environmental variables.
 
 #### HTTP configuration
 
+* __http-interface__ (`string`, `""`) - interface for listening by API application. Provide IP or hostname. Leave empty value for listening on all interfaces 
 * __http-port__ (`integer`, `8080`) - port for listening by API application
 * __trusted-proxy__ (`string[]`, `- "127.0.0.1/32"`) - list of trusted proxies (your web server IP)
 
@@ -88,7 +89,7 @@ File `config/config.yaml` has more priority than environmental variables.
 #### System configuration
 
 * __version__ (`string`, `"1.0.0"`) - API version. You don't need to override it.
-* __config-reload-time__ (`string`, `60`) - time in seconds for configs reload (actually this is the only value which is not reloading without app restart)
+* __config-reload-time__ (`string`, `60`) - time in seconds for configs reload (this option, as well as `http-interface` and `http-port` will not being updated without app restart)
 * __extended-logs__ (`boolean`, `false`) - log all events from Zebra API
 
 ## API Overview

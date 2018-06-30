@@ -19,5 +19,5 @@ func main() {
 	initRouting("/config", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
 	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoRoutes}, true)
 	log.Print("Started Zebra API v. " + config.Version)
-	log.Fatal(http.ListenAndServe(":" + config.HttpPort, nil))
+	log.Fatal(http.ListenAndServe(config.HttpInterface + ":" + config.HttpPort, nil))
 }
