@@ -75,7 +75,7 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "stripe was not saved in Redis: " + err.Error())
 		return 503, StripeCreateResponse{}, err
 	}
-	extendedLog(r, "stripe was created")
+	extendedLog(r, "stripe " + stripe.Key + " was created")
 	return 201, StripeCreateResponse{stripe.Key, stripe.Expiration, stripe.OwnerKey}, nil
 }
 

@@ -90,7 +90,7 @@ File `config/config.yaml` has more priority than environmental variables.
 
 * __version__ (`string`, `"1.0.0"`) - API version. You don't need to override it.
 * __config-reload-time__ (`string`, `60`) - time in seconds for configs reload (this option, as well as `http-interface` and `http-port` will not being updated without app restart)
-* __extended-logs__ (`boolean`, `false`) - log all events from Zebra API
+* __extended-logs__ (`boolean`, `false`) - log all events from Zebra API. Don't enable if you are not absolutely sure about protection of log files.
 
 ## API Overview
 
