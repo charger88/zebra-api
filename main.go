@@ -2,7 +2,9 @@ package main
 
 import (
 	"net/http"
+	"math/rand"
 	"log"
+	"time"
 )
 
 func main() {
@@ -10,6 +12,7 @@ func main() {
 	log.Print("Starting Zebra API v. " + config.Version)
 	reloadConfig()
 	establishRedisConnection(true)
+	rand.Seed(time.Now().UTC().UnixNano())
 	initRouting("/stripe", map[string]Endpoint{
 		http.MethodGet: mStripeGet,
 		http.MethodPost: mStripeCreate,

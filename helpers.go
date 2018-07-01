@@ -1,7 +1,6 @@
 package main
 
 import (
-	"time"
 	"math/rand"
 	"fmt"
 	"github.com/mediocregopher/radix.v2/redis"
@@ -11,18 +10,12 @@ import (
 	"net"
 )
 
-var randomInitialized = false
-
 const randomStringUcLcD = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const randomStringUcD = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const randomStringUc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const randomStringD = "0123456789"
 
 func randomString(n int, chars string) string {
-	if !randomInitialized {
-		rand.Seed(time.Now().UTC().UnixNano())
-		randomInitialized = true
-	}
 	letterRunes := []rune(chars)
 	b := make([]rune, n)
 	for i := range b {
