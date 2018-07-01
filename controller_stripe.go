@@ -188,10 +188,10 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeGetResponse{}, err
 	}
-	rateLimitKey, rateLimitStatus := rateLimit("mStripeDelete", getIp(r), 1, 600)
+	rateLimitKey, rateLimitStatus := rateLimit("mStripeDelete", getIp(r), 10, 600)
 	if !rateLimitStatus {
 		extendedLog(r, "rate limit violation")
-		return 429, StripeDeleteResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 60))
+		return 429, StripeDeleteResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 600))
 	}
 	stripe, err := loadStripeFromRedis(req.Key)
 	if err != nil {
