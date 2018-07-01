@@ -20,7 +20,7 @@ const randomStringD = "0123456789"
 
 func randomString(n int, chars string) string {
 	if !randomInitialized {
-		rand.Seed(time.Now().Unix())
+		rand.Seed(time.Now().UTC().UnixNano())
 		randomInitialized = true
 	}
 	letterRunes := []rune(chars)
