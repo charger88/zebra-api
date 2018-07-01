@@ -16,6 +16,7 @@ password-policy: "allowed"
 encryption-password-policy: "allowed"
 require-api-key: false
 require-api-key-for-post-only: true
+max-text-length: 50000
 allowed-shares-period: 60
 allowed-shares-number-in-period: 5
 allowed-api-keys:

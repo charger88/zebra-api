@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"golang.org/x/crypto/bcrypt"
+	"math"
 )
 
 type StripeCreateResponse struct {
@@ -29,8 +30,13 @@ func getStripeCreateRequest(r *http.Request) (StripeCreateRequest, error, int) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&sc)
 	defer r.Body.Close()
-	if !validateData(sc.Data) {
-		return sc, errors.New("data: format validation failed"), 422
+	if sc.Data == "" {
+		return sc, errors.New("data: empty data"), 422
+	}
+	if len(sc.Data) > config.MaxTextLength {
+		fmt.Sprintf("try again in %d seconds", config.AllowedSharesPeriod)
+		over := int(math.Ceil((float64(len(sc.Data)) / float64(config.MaxTextLength) - 1) * 100))
+		return sc, errors.New(fmt.Sprintf("data: text is %d%% longer than allowed", over)), 422
 	}
 	if !validateExpiration(sc.Expiration) {
 		return sc, errors.New("expiration: validation failed"), 422
@@ -276,8 +282,4 @@ func validatePassword(password string, required bool) bool {
 
 func validateExpiration(expiration int) bool {
 	return (expiration >= 10) && (expiration <= config.MaxExpirationTime)
-}
-
-func validateData(data string) bool {
-	return data != ""
 }

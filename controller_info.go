@@ -20,6 +20,7 @@ type InfoConfigResponse struct {
 	Email string `json:"email"`
 	Color string `json:"color"`
 	MaxExpirationTime int `json:"max-expiration-time"`
+	MaxTextLength int `json:"max-text-length"`
 	PasswordPolicy string `json:"password-policy"`
 	EncryptionPasswordPolicy string `json:"encryption-password-policy"`
 	RequireApiKey bool `json:"require-api-key"`
@@ -34,6 +35,7 @@ func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 		config.PublicEmail,
 		config.PublicColor,
 		config.MaxExpirationTime,
+		config.MaxTextLength,
 		config.PasswordPolicy,
 		config.EncryptionPasswordPolicy,
 		config.RequireApiKey,
