@@ -90,6 +90,7 @@ type StripeGetResponse struct {
 type StripeGetRequest struct {
 	Key string `json:"key"`
 	Password string `json:"password"`
+	CheckKey string `json:"check-key"`
 }
 
 func getStripeGetRequest(r *http.Request) (StripeGetRequest, error, int) {
@@ -105,6 +106,12 @@ func getStripeGetRequest(r *http.Request) (StripeGetRequest, error, int) {
 			return sc, errors.New("password: format validation failed"), 422
 		}
 	}
+	sc.CheckKey = r.URL.Query().Get("check-key")
+	if sc.CheckKey != "" {
+		if !validateKey(sc.CheckKey) {
+			return sc, errors.New("check-key: format validation failed"), 422
+		}
+	}
 	return sc, err, 400
 }
 
@@ -114,7 +121,23 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeGetResponse{}, err
 	}
-	rateLimitKey, rateLimitStatus := rateLimit("mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
+	rateLimitKey := ""
+	rateLimitStatus := false
+	if req.CheckKey != "" {
+		resp := redisClient.Cmd("GET", "CHECK:" + req.CheckKey)
+		if resp.Err == nil {
+			dat, err := resp.Str()
+			if (err == nil) && (dat == req.Key) {
+				err = deleteRedisKey("CHECK:" + req.CheckKey)
+				if err == nil {
+					rateLimitStatus = true
+				}
+			}
+		}
+	}
+	if !rateLimitStatus {
+		rateLimitKey, rateLimitStatus = rateLimit("mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
+	}
 	if !rateLimitStatus {
 		extendedLog(r, "rate limit violation")
 		return 429, StripeGetResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 60))
@@ -154,13 +177,16 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		deleteRedisKey("BURN:" + stripe.Key)
 		stripe.Expiration = 0
 	}
-	deleteRedisKey(rateLimitKey)
+	if rateLimitKey != "" {
+		deleteRedisKey(rateLimitKey)
+	}
 	extendedLog(r, "stripe " + stripe.Key + " was retrieved")
 	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn, stripe.EncryptedWithSpecialPassword}, nil
 }
 
 type StripeDeleteResponse struct {
 	Success bool `json:"success"`
+	CheckKey string `json:"check-key"`
 }
 
 type StripeDeleteRequest struct {
@@ -223,7 +249,12 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 	deleteRedisKey("STRIPE:" + stripe.Key)
 	deleteRedisKey(rateLimitKey)
 	extendedLog(r, "stripe " + stripe.Key + " was deleted")
-	return 200, StripeDeleteResponse{true}, nil
+	checkKey := randomString(32, randomStringUcLcD)
+	resp := redisClient.Cmd("SET", "CHECK:" + checkKey, stripe.Key, "EX", 30, "NX")
+	if resp.Err != nil {
+		return 200, StripeDeleteResponse{true, ""}, nil
+	}
+	return 200, StripeDeleteResponse{true, checkKey}, nil
 }
 
 func validateKey(key string) bool {

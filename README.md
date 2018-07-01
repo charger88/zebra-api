@@ -142,6 +142,7 @@ All API routes also support `OPTIONS` HTTP method.
 
 * __key__ - key
 * __password__ - password _(optional)_
+* __check-key__ - special key which allows to ignore rate limiting. It is being generated when text is deleted _(optional)_
 
 ##### Response (json)
 
@@ -177,3 +178,4 @@ All API routes also support `OPTIONS` HTTP method.
 ##### Response (json)
 
 * __success__ - boolean value of deletion's success
+* __check-key__ - string key which allows to ignore rate limiting for attempt to load the text (so you can check text's non-existence without rate limit)
