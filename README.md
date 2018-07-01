@@ -25,7 +25,7 @@ Make sure that you meet all requirement, made all required changes in the config
 ```
 go run *.go
 ```
-Please, don't expose the app into internet without _nginx_ of other web server with enabled SSL in front of it.
+Please, don't expose the app into internet without _nginx_ or other web server with enabled SSL in front of it.
 
 Also this web server may serve web client files. Example of _nginx_ configuration: https://github.com/charger88/zebra-docker/blob/master/zebra-client/default.conf
 
