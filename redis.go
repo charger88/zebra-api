@@ -33,10 +33,18 @@ func establishRedisConnection(fatal bool) {
 			log.Print("Redis test connection problem: " + err.Error())
 		}
 	}
+	redisClient.Cmd("SELECT", config.RedisDatabase)
+	if err != nil {
+		if fatal {
+			log.Fatal("Redis connection problem: " + err.Error())
+		} else {
+			log.Print("Redis connection problem: " + err.Error())
+		}
+	}
 }
 
 func testRedisConnection() error {
-	err := redisClient.Cmd("SET", "TEST", 1, "EX", 1).Err
+	err := redisClient.Cmd("SET", config.RedisKeyPrefix + "TEST", 1, "EX", 1).Err
 	if err != nil {
 		return err
 	}

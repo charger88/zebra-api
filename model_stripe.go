@@ -19,7 +19,7 @@ type Stripe struct {
 
 func loadStripeFromRedis(key string) (Stripe, error) {
 	stripe := Stripe{}
-	resp := redisClient.Cmd("GET", "STRIPE:" + key)
+	resp := redisClient.Cmd("GET", config.RedisKeyPrefix + "STRIPE:" + key)
 	if resp.Err != nil {
 		return stripe, resp.Err
 	}
@@ -54,7 +54,7 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 	if err != nil {
 		return Stripe{}, err
 	}
-	resp := redisClient.Cmd("SET", "STRIPE:" + key, dat, "EX", expiration, "NX")
+	resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "STRIPE:" + key, dat, "EX", expiration, "NX")
 	if resp.Err != nil {
 		return Stripe{}, resp.Err
 	}

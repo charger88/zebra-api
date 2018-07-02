@@ -30,7 +30,7 @@ func rateLimit(prefix string, value string, limit int, period int) (string, bool
 	var redisRespValue string
 	for n := 0; n < limit; n++ {
 		key = fmt.Sprintf("RATE-LIMIT:%s:%s:%d", prefix, value, n)
-		resp = redisClient.Cmd("SET", key, 1, "EX", period, "NX")
+		resp = redisClient.Cmd("SET", config.RedisKeyPrefix + key, 1, "EX", period, "NX")
 		if resp.Err == nil {
 			redisRespValue, _ = resp.Str()
 			if redisRespValue == "OK" {
@@ -44,7 +44,7 @@ func rateLimit(prefix string, value string, limit int, period int) (string, bool
 }
 
 func deleteRedisKey(key string) error {
-	resp := redisClient.Cmd("DEL", key)
+	resp := redisClient.Cmd("DEL", config.RedisKeyPrefix + key)
 	return resp.Err
 }
 

@@ -130,7 +130,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	rateLimitKey := ""
 	rateLimitStatus := false
 	if req.CheckKey != "" {
-		resp := redisClient.Cmd("GET", "CHECK:" + req.CheckKey)
+		resp := redisClient.Cmd("GET", config.RedisKeyPrefix + "CHECK:" + req.CheckKey)
 		if resp.Err == nil {
 			dat, err := resp.Str()
 			if (err == nil) && (dat == req.Key) {
@@ -169,7 +169,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		}
 	}
 	if stripe.Burn {
-		resp := redisClient.Cmd("SET", "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
+		resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
 		if resp.Err != nil {
 			return 503, StripeGetResponse{}, resp.Err
 		}
@@ -243,7 +243,7 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 		return 403, StripeDeleteResponse{}, errors.New("incorrect owner key")
 	}
 	if stripe.Burn {
-		resp := redisClient.Cmd("SET", "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
+		resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
 		if resp.Err != nil {
 			return 503, StripeDeleteResponse{}, resp.Err
 		}
@@ -256,7 +256,7 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 	deleteRedisKey(rateLimitKey)
 	extendedLog(r, "stripe " + stripe.Key + " was deleted")
 	checkKey := randomString(32, randomStringUcLcD)
-	resp := redisClient.Cmd("SET", "CHECK:" + checkKey, stripe.Key, "EX", 30, "NX")
+	resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "CHECK:" + checkKey, stripe.Key, "EX", 30, "NX")
 	if resp.Err != nil {
 		return 200, StripeDeleteResponse{true, ""}, nil
 	}
