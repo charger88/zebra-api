@@ -67,6 +67,7 @@ File `config/config.yaml` has more priority than environmental variables.
 #### Security configuration
 
 * __max-expiration-time__ (`integer`, `86400`) - maximal text's expiration time (in seconds)
+* __max-text-length__ (`integer`, `50000`) - total text length limit in bytes (so it is not accurate after encryption)
 * __password-policy__ (`string`, `"allowed"`) - possible values are:
     * `allowed` - password for shared text is optional
     * `required` - password for shared text is required
@@ -129,6 +130,7 @@ All API routes also support `OPTIONS` HTTP method.
 * __email__ - administrator's email (from config __public-email__)
 * __color__ - color for client (from config __public-color__)
 * __max-expiration-time__ - max expiration time (from config __max-expiration-time__)
+* __max-text-length__  - total text length limit in bytes (so it is not accurate after encryption)
 * __encryption-password-policy__ - client-side encryption password policy (from config __password-policy__)
 * __password-policy__ - password policy (from config __password-policy__)
 * __require-api-key__ - require API key configuration (from config __require-api-key__)
