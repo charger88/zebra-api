@@ -10,6 +10,7 @@ import (
 func main() {
 	loadConfig()
 	log.Print("Starting Zebra API v. " + config.Version)
+	retestRedisConnection()
 	reloadConfig()
 	establishRedisConnection(true)
 	rand.Seed(time.Now().UTC().UnixNano())
