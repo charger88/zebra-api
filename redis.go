@@ -4,6 +4,7 @@ import (
 	"log"
 	"github.com/mediocregopher/radix.v2/redis"
 	"time"
+	"errors"
 )
 
 var redisClient *redis.Client
@@ -66,9 +67,16 @@ func retestRedisConnection() {
 }
 
 func testRedisConnection() error {
-	err := redisClient.Cmd("SET", config.RedisKeyPrefix + "TEST", 1, "EX", 1).Err
+	res := redisClient.Cmd("PING")
+	if res.Err != nil {
+		return res.Err
+	}
+	resStr, err := res.Str()
 	if err != nil {
 		return err
+	}
+	if resStr != "PONG" {
+		return errors.New("incorrect test response")
 	}
 	return nil
 }
