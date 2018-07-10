@@ -24,7 +24,7 @@ func randomString(n int, chars string) string {
 	return string(b)
 }
 
-func rateLimit(prefix string, value string, limit int, period int) (string, bool) {
+func rateLimit(redisClient *redis.Client, prefix string, value string, limit int, period int) (string, bool) {
 	var key string
 	var resp *redis.Resp
 	var redisRespValue string
@@ -43,7 +43,7 @@ func rateLimit(prefix string, value string, limit int, period int) (string, bool
 	return "", false
 }
 
-func deleteRedisKey(key string) error {
+func deleteRedisKey(redisClient *redis.Client, key string) error {
 	resp := redisClient.Cmd("DEL", config.RedisKeyPrefix + key)
 	return resp.Err
 }

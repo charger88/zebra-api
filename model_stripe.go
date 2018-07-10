@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 	"math"
+	"github.com/mediocregopher/radix.v2/redis"
 )
 
 type Stripe struct {
@@ -17,7 +18,7 @@ type Stripe struct {
 	EncryptedWithSpecialPassword bool `json:"encrypted-with-client-side-password"`
 }
 
-func loadStripeFromRedis(key string) (Stripe, error) {
+func loadStripeFromRedis(redisClient *redis.Client, key string) (Stripe, error) {
 	stripe := Stripe{}
 	resp := redisClient.Cmd("GET", config.RedisKeyPrefix + "STRIPE:" + key)
 	if resp.Err != nil {
@@ -34,7 +35,7 @@ func loadStripeFromRedis(key string) (Stripe, error) {
 	return stripe, nil
 }
 
-func createStripeInRedis(data string, expiration int, mode string, password string, burn bool, encryptedWithSpecialPassword bool, attempts int) (Stripe, error) {
+func createStripeInRedis(redisClient *redis.Client, data string, expiration int, mode string, password string, burn bool, encryptedWithSpecialPassword bool, attempts int) (Stripe, error) {
 	var chars string
 	if mode == "uppercase-lowercase-digits" {
 		chars = randomStringUcLcD
@@ -61,7 +62,7 @@ func createStripeInRedis(data string, expiration int, mode string, password stri
 	val, _ := resp.Str()
 	if val != "OK" {
 		if attempts < 3 {
-			return createStripeInRedis(data, expiration, mode, password, burn, encryptedWithSpecialPassword, attempts + 1)
+			return createStripeInRedis(redisClient, data, expiration, mode, password, burn, encryptedWithSpecialPassword, attempts + 1)
 		} else {
 			return Stripe{}, errors.New("this code is already in use")
 		}

@@ -46,6 +46,7 @@ File `config/config.yaml` has more priority than environmental variables.
 * __redis-port__ (`integer`, `6379`) - redis port
 * __redis-password__ (`string`, `""`) - redis password
 * __redis-database__ (`integer`, `0`) - redis database number
+* __redis-pool__ (`integer`, `16`) - number of redis connections in the pool
 * __redis-key-prefix__ (`string`, `""`) - redis key prefix
 
 #### HTTP configuration

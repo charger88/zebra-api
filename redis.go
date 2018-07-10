@@ -2,24 +2,18 @@ package main
 
 import (
 	"log"
-	"github.com/mediocregopher/radix.v2/redis"
+	"github.com/mediocregopher/radix.v2/pool"
 	"time"
 	"errors"
+	"github.com/mediocregopher/radix.v2/redis"
 )
 
-var redisClient *redis.Client
+var redisPool *pool.Pool
 
 func establishRedisConnection(fatal bool) {
 	var err error
 	connectionString := config.RedisHost + ":" + config.RedisPort
-	redisClient, err = redis.Dial("tcp", connectionString)
-	if config.RedisPassword != "" {
-		res := redisClient.Cmd("AUTH", config.RedisPassword)
-		if  res.Err != nil {
-			redisClient.Close()
-			log.Fatal("Redis connection problem: " + res.Err.Error())
-		}
-	}
+	redisPool, err = pool.New("tcp", connectionString, config.RedisPool)
 	if err != nil {
 		if fatal {
 			log.Fatal("Redis connection problem: " + err.Error())
@@ -27,7 +21,13 @@ func establishRedisConnection(fatal bool) {
 			log.Print("Redis connection problem: " + err.Error())
 		}
 	}
-	err = testRedisConnection()
+	if config.RedisPassword != "" {
+		res := redisPool.Cmd("AUTH", config.RedisPassword)
+		if  res.Err != nil {
+			log.Fatal("Redis connection problem: " + res.Err.Error())
+		}
+	}
+	_, err = testRedisConnectionAndGetClient(true)
 	if err != nil {
 		if fatal {
 			log.Fatal("Redis test connection problem: " + err.Error())
@@ -35,7 +35,7 @@ func establishRedisConnection(fatal bool) {
 			log.Print("Redis test connection problem: " + err.Error())
 		}
 	}
-	redisClient.Cmd("SELECT", config.RedisDatabase)
+	redisPool.Cmd("SELECT", config.RedisDatabase)
 	if err != nil {
 		if fatal {
 			log.Fatal("Redis connection problem: " + err.Error())
@@ -52,7 +52,7 @@ func retestRedisConnection() {
 		for {
 			select {
 			case <- ticker.C:
-				err := testRedisConnection()
+				_, err := testRedisConnectionAndGetClient(true)
 				if err != nil {
 					log.Print("Redis test connection problem: " + err.Error())
 				} else {
@@ -66,17 +66,29 @@ func retestRedisConnection() {
 	}()
 }
 
-func testRedisConnection() error {
+func testRedisConnectionAndGetClient(closeClient bool) (*redis.Client, error) {
+	var err error
+	var redisClient *redis.Client
+	if redisPool.Avail() < 1 {
+		return redisClient, errors.New("redis pool was reached")
+	}
+	redisClient, err = redisPool.Get()
+	if err != nil {
+		return redisClient, err
+	}
 	res := redisClient.Cmd("PING")
+	if closeClient {
+		redisClient.Close()
+	}
 	if res.Err != nil {
-		return res.Err
+		return redisClient, res.Err
 	}
 	resStr, err := res.Str()
 	if err != nil {
-		return err
+		return redisClient, err
 	}
 	if resStr != "PONG" {
-		return errors.New("incorrect test response")
+		return redisClient, errors.New("incorrect test response")
 	}
-	return nil
+	return redisClient, nil
 }

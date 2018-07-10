@@ -7,11 +7,14 @@ import (
 	"log"
 	"errors"
 	"strings"
+	"github.com/mediocregopher/radix.v2/redis"
 )
 
 type Endpoint func(*http.Request, Context) (int, JsonResponse, error)
 
-type Context struct {}
+type Context struct {
+	redisClient *redis.Client
+}
 
 type JsonResponse interface {}
 
@@ -36,13 +39,15 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 		if !public && (r.Method != http.MethodOptions) {
 			status, err = auth(r)
 		}
+		var redisClient *redis.Client
 		if err == nil {
-			err = testRedisConnection()
+			redisClient, err = testRedisConnectionAndGetClient(false)
 			if err != nil {
 				establishRedisConnection(false)
-				err = testRedisConnection()
+				redisClient, err = testRedisConnectionAndGetClient(false)
 				if err != nil {
 					status = 503
+					log.Print(err)
 					err = errors.New("service temporary unavailable")
 				}
 			}
@@ -50,7 +55,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 		if err == nil {
 			if methods[r.Method] != nil || r.Method == http.MethodOptions {
 				if methods[r.Method] != nil {
-					status, response, err = methods[r.Method](r, Context{})
+					status, response, err = methods[r.Method](r, Context{redisClient})
 				} else {
 					status = 200
 				}
@@ -63,6 +68,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 				status = 405
 				err = errors.New("method not allowed")
 			}
+			redisClient.Close()
 		}
 		sendResponse(status, response, err, w)
 	})

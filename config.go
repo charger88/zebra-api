@@ -19,6 +19,7 @@ type Config struct {
 	RedisPort string `yaml:"redis-port"`
 	RedisPassword string `yaml:"redis-password"`
 	RedisDatabase int `yaml:"redis-database"`
+	RedisPool int `yaml:"redis-pool"`
 	RedisKeyPrefix string`yaml:"redis-key-prefix"`
 	HttpInterface string `yaml:"http-interface"`
 	HttpPort string `yaml:"http-port"`

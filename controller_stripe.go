@@ -71,12 +71,12 @@ func mStripeCreate(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeCreateResponse{}, err
 	}
-	_, rateLimitStatus := rateLimit("mStripeCreate", getIp(r), config.AllowedSharesNumberInPeriod, config.AllowedSharesPeriod)
+	_, rateLimitStatus := rateLimit(c.redisClient, "mStripeCreate", getIp(r), config.AllowedSharesNumberInPeriod, config.AllowedSharesPeriod)
 	if !rateLimitStatus {
 		extendedLog(r, "rate limit violation")
 		return 429, StripeCreateResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", config.AllowedSharesPeriod))
 	}
-	stripe, err := createStripeInRedis(req.Data, req.Expiration, req.Mode, req.Password, req.Burn, req.EncryptedWithClientSidePassword, 0)
+	stripe, err := createStripeInRedis(c.redisClient, req.Data, req.Expiration, req.Mode, req.Password, req.Burn, req.EncryptedWithClientSidePassword, 0)
 	if err != nil {
 		extendedLog(r, "stripe was not saved in Redis: " + err.Error())
 		return 503, StripeCreateResponse{}, err
@@ -130,11 +130,11 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 	rateLimitKey := ""
 	rateLimitStatus := false
 	if req.CheckKey != "" {
-		resp := redisClient.Cmd("GET", config.RedisKeyPrefix + "CHECK:" + req.CheckKey)
+		resp := c.redisClient.Cmd("GET", config.RedisKeyPrefix + "CHECK:" + req.CheckKey)
 		if resp.Err == nil {
 			dat, err := resp.Str()
 			if (err == nil) && (dat == req.Key) {
-				err = deleteRedisKey("CHECK:" + req.CheckKey)
+				err = deleteRedisKey(c.redisClient, "CHECK:" + req.CheckKey)
 				if err == nil {
 					rateLimitStatus = true
 				}
@@ -142,13 +142,13 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		}
 	}
 	if !rateLimitStatus {
-		rateLimitKey, rateLimitStatus = rateLimit("mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
+		rateLimitKey, rateLimitStatus = rateLimit(c.redisClient, "mStripeGet", getIp(r), config.AllowedBadAttempts, 60)
 	}
 	if !rateLimitStatus {
 		extendedLog(r, "rate limit violation")
 		return 429, StripeGetResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 60))
 	}
-	stripe, err := loadStripeFromRedis(req.Key)
+	stripe, err := loadStripeFromRedis(c.redisClient, req.Key)
 	if err != nil {
 		extendedLog(r, "can't load stripe " + req.Key + " from redis: " + err.Error())
 		return 503, StripeGetResponse{}, err
@@ -169,7 +169,7 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		}
 	}
 	if stripe.Burn {
-		resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
+		resp := c.redisClient.Cmd("SET", config.RedisKeyPrefix + "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
 		if resp.Err != nil {
 			return 503, StripeGetResponse{}, resp.Err
 		}
@@ -179,12 +179,12 @@ func mStripeGet(r *http.Request, c Context) (int, JsonResponse, error) {
 		}
 	}
 	if stripe.Burn {
-		deleteRedisKey("STRIPE:" + stripe.Key)
-		deleteRedisKey("BURN:" + stripe.Key)
+		deleteRedisKey(c.redisClient, "STRIPE:" + stripe.Key)
+		deleteRedisKey(c.redisClient, "BURN:" + stripe.Key)
 		stripe.Expiration = 0
 	}
 	if rateLimitKey != "" {
-		deleteRedisKey(rateLimitKey)
+		deleteRedisKey(c.redisClient, rateLimitKey)
 	}
 	extendedLog(r, "stripe " + stripe.Key + " was retrieved")
 	return 200, StripeGetResponse{stripe.Key, stripe.Data, stripe.Expiration, stripe.Burn, stripe.EncryptedWithSpecialPassword}, nil
@@ -220,12 +220,12 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 		extendedLog(r, "can't parse request: " + err.Error())
 		return errStatus, StripeGetResponse{}, err
 	}
-	rateLimitKey, rateLimitStatus := rateLimit("mStripeDelete", getIp(r), 10, 600)
+	rateLimitKey, rateLimitStatus := rateLimit(c.redisClient, "mStripeDelete", getIp(r), 10, 600)
 	if !rateLimitStatus {
 		extendedLog(r, "rate limit violation")
 		return 429, StripeDeleteResponse{}, errors.New( fmt.Sprintf("try again in %d seconds", 600))
 	}
-	stripe, err := loadStripeFromRedis(req.Key)
+	stripe, err := loadStripeFromRedis(c.redisClient, req.Key)
 	if err != nil {
 		extendedLog(r, "can't load stripe " + req.Key + " from redis: " + err.Error())
 		return 503, StripeDeleteResponse{}, err
@@ -243,7 +243,7 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 		return 403, StripeDeleteResponse{}, errors.New("incorrect owner key")
 	}
 	if stripe.Burn {
-		resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
+		resp := c.redisClient.Cmd("SET", config.RedisKeyPrefix + "BURN:" + stripe.Key, 1, "EX", 3600, "NX")
 		if resp.Err != nil {
 			return 503, StripeDeleteResponse{}, resp.Err
 		}
@@ -252,11 +252,11 @@ func mStripeDelete(r *http.Request, c Context) (int, JsonResponse, error) {
 			return 404, StripeDeleteResponse{}, errors.New("key not found")
 		}
 	}
-	deleteRedisKey("STRIPE:" + stripe.Key)
-	deleteRedisKey(rateLimitKey)
+	deleteRedisKey(c.redisClient, "STRIPE:" + stripe.Key)
+	deleteRedisKey(c.redisClient, rateLimitKey)
 	extendedLog(r, "stripe " + stripe.Key + " was deleted")
 	checkKey := randomString(32, randomStringUcLcD)
-	resp := redisClient.Cmd("SET", config.RedisKeyPrefix + "CHECK:" + checkKey, stripe.Key, "EX", 30, "NX")
+	resp := c.redisClient.Cmd("SET", config.RedisKeyPrefix + "CHECK:" + checkKey, stripe.Key, "EX", 30, "NX")
 	if resp.Err != nil {
 		return 200, StripeDeleteResponse{true, ""}, nil
 	}
