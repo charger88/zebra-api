@@ -40,7 +40,8 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 			status, err = auth(r)
 		}
 		var redisClient *redis.Client
-		if err == nil {
+		var redisRequired = (resource == "/stripe") && (r.Method != "OPTIONS")
+		if (err == nil) && redisRequired {
 			redisClient, err = testRedisConnectionAndGetClient(false)
 			if err != nil {
 				establishRedisConnection(false)
@@ -68,7 +69,9 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 				status = 405
 				err = errors.New("method not allowed")
 			}
-			redisClient.Close()
+			if redisRequired {
+				redisClient.Close()
+			}
 		}
 		sendResponse(status, response, err, w)
 	})
