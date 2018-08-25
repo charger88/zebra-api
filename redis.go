@@ -16,23 +16,23 @@ func establishRedisConnection(fatal bool) {
 	redisPool, err = pool.New("tcp", connectionString, config.RedisPool)
 	if err != nil {
 		if fatal {
-			log.Fatal("Redis connection problem: " + err.Error())
+			log.Fatal("Redis connection problem (#1): " + err.Error())
 		} else {
-			log.Print("Redis connection problem: " + err.Error())
+			log.Print("Redis connection problem (#1): " + err.Error())
 		}
 	}
 	if config.RedisPassword != "" {
 		res := redisPool.Cmd("AUTH", config.RedisPassword)
 		if  res.Err != nil {
-			log.Fatal("Redis connection problem: " + res.Err.Error())
+			log.Fatal("Redis connection problem (#2): " + res.Err.Error())
 		}
 	}
 	_, err = testRedisConnectionAndGetClient(true)
 	if err != nil {
 		if fatal {
-			log.Fatal("Redis test connection problem: " + err.Error())
+			log.Fatal("Redis test connection problem (#3): " + err.Error())
 		} else {
-			log.Print("Redis test connection problem: " + err.Error())
+			log.Print("Redis test connection problem (#3): " + err.Error())
 		}
 	}
 	redisPool.Cmd("SELECT", config.RedisDatabase)
@@ -70,11 +70,18 @@ func testRedisConnectionAndGetClient(closeClient bool) (*redis.Client, error) {
 	var err error
 	var redisClient *redis.Client
 	if redisPool.Avail() < 1 {
-		return redisClient, errors.New("redis pool was reached")
+		return redisClient, errors.New("redis is not available")
 	}
 	redisClient, err = redisPool.Get()
 	if err != nil {
 		return redisClient, err
+	}
+	if config.RedisPassword != "" {
+		res := redisClient.Cmd("AUTH", config.RedisPassword)
+		if res.Err != nil {
+			redisClient.Close()
+			return redisClient, res.Err
+		}
 	}
 	res := redisClient.Cmd("PING")
 	if closeClient {
