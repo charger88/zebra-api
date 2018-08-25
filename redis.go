@@ -69,9 +69,6 @@ func retestRedisConnection() {
 func testRedisConnectionAndGetClient(closeClient bool) (*redis.Client, error) {
 	var err error
 	var redisClient *redis.Client
-	if redisPool.Avail() < 1 {
-		return redisClient, errors.New("redis is not available")
-	}
 	redisClient, err = redisPool.Get()
 	if err != nil {
 		return redisClient, err
