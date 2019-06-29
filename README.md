@@ -81,7 +81,9 @@ File `config/config.yaml` has more priority than environmental variables.
     * `disabled` - (different) encryption password for shared text not allowed
 * __require-api-key__ (`boolean`, `false`) - require `X-Api-Key`
 * __require-api-key-for-post-only__ (`boolean`, `true`) - require `X-Api-Key` for text sharing only (`require-api-key` should be `true`)
-* __allowed-api-keys__ (`string[]`) - list of appropriate values of `X-Api-Key` header 
+* __allowed-api-keys__ (`string[]`) - list of appropriate values of `X-Api-Key` header
+* __guest-one-time-key__ (`boolean`, `false`) - if `X-Api-Key` required you can use this feature to generate one-time keys (for guests) which will work instead of `X-Api-Key` (one time each)
+* __guest-one-time-key-expiration-time__ (`integer`, `3600`) - expiration of one-time keys (in seconds)
 
 #### Configuration for client
 

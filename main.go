@@ -21,6 +21,7 @@ func main() {
 	}, false)
 	initRouting("/ping", map[string]Endpoint{http.MethodGet: mInfoPing}, true)
 	initRouting("/config", map[string]Endpoint{http.MethodGet: mInfoConfig}, true)
+	initRouting("/guest-key", map[string]Endpoint{http.MethodPost: mGuestKeyCreate}, false)
 	initRouting("/", map[string]Endpoint{http.MethodGet: mInfoRoutes}, true)
 	log.Print("Started Zebra API v. " + config.Version)
 	log.Fatal(http.ListenAndServe(config.HttpInterface + ":" + config.HttpPort, nil))

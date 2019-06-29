@@ -36,12 +36,9 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 		var status int
 		var response JsonResponse
 		var err error
-		if !public && (r.Method != http.MethodOptions) {
-			status, err = auth(r)
-		}
 		var redisClient *redis.Client
-		var redisRequired = (resource == "/stripe") && (r.Method != "OPTIONS")
-		if (err == nil) && redisRequired {
+		var redisRequired = (!public || (resource == "/guest-key") || (resource == "/stripe")) && (r.Method != http.MethodOptions)
+		if redisRequired {
 			redisClient, err = testRedisConnectionAndGetClient(false)
 			if err != nil {
 				establishRedisConnection(false)
@@ -52,6 +49,9 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 					err = errors.New("service temporary unavailable")
 				}
 			}
+		}
+		if !public && (r.Method != http.MethodOptions) {
+			status, err = auth(redisClient, r)
 		}
 		if err == nil {
 			if methods[r.Method] != nil || r.Method == http.MethodOptions {
@@ -77,7 +77,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 	})
 }
 
-func auth(r *http.Request) (int, error) {
+func auth(redisClient *redis.Client, r *http.Request) (int, error) {
 	var status int
 	var err error
 	requireKey := config.RequireApiKey && (!config.RequireApiKeyForPostOnly || config.RequireApiKeyForPostOnly && (r.Method != http.MethodGet))
@@ -85,11 +85,24 @@ func auth(r *http.Request) (int, error) {
 	if requireKey && (apiKey == "") {
 		status = 401
 		err = errors.New("header X-Api-Key is required")
-	} else if (apiKey != "") && !config.isApiKeyEnabled(apiKey) {
+	} else if (apiKey != "") && !(config.isApiKeyEnabled(apiKey) || config.GuestOneTimeKey && isGuestKey(redisClient, apiKey)) {
 		status = 401
 		err = errors.New("key from header X-Api-Key is not enabled")
 	}
 	return status, err
+}
+
+func isGuestKey(redisClient *redis.Client, apiKey string) bool  {
+	var err error
+	resp := redisClient.Cmd("DEL", config.RedisKeyPrefix + "GUEST_KEY:" + apiKey)
+	if resp.Err != nil {
+		return false
+	}
+	deleted, err := resp.Int()
+	if err != nil {
+		return false
+	}
+	return deleted > 0
 }
 
 func sendResponse(status int, resp JsonResponse, err error, w http.ResponseWriter) {

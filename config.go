@@ -36,6 +36,8 @@ type Config struct {
 	RequireApiKeyForPostOnly bool `yaml:"require-api-key-for-post-only"`
 	MaxTextLength int `yaml:"max-text-length"`
 	AllowedApiKeys []string `yaml:"allowed-api-keys"`
+	GuestOneTimeKey bool `yaml:"guest-one-time-key"`
+	GuestOneTimeKeyExpirationTime int `yaml:"guest-one-time-key-expiration-time"`
 	AllowedSharesPeriod int `yaml:"allowed-shares-period"`
 	AllowedSharesNumberInPeriod int `yaml:"allowed-shares-number-in-period"`
 	PublicName string `yaml:"public-name"`

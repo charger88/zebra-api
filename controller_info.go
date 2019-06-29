@@ -25,6 +25,8 @@ type InfoConfigResponse struct {
 	EncryptionPasswordPolicy string `json:"encryption-password-policy"`
 	RequireApiKey bool `json:"require-api-key"`
 	RequireApiKeyForPostOnly bool `json:"require-api-key-for-post-only"`
+	GuestOneTimeKey bool `json:"guest-one-time-key"`
+	GuestOneTimeKeyExpirationTime int `json:"guest-one-time-key-expiration-time"`
 }
 
 func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
@@ -40,6 +42,8 @@ func mInfoConfig(r *http.Request, c Context) (int, JsonResponse, error) {
 		config.EncryptionPasswordPolicy,
 		config.RequireApiKey,
 		config.RequireApiKeyForPostOnly,
+		config.GuestOneTimeKey,
+		config.GuestOneTimeKeyExpirationTime,
 	}, nil
 }
 

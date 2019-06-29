@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.0.1"
 redis-host: "127.0.0.1"
 redis-port: 6379
 redis-password: ""
@@ -23,6 +23,8 @@ max-text-length: 50000
 allowed-shares-period: 60
 allowed-shares-number-in-period: 5
 allowed-api-keys:
+guest-one-time-key: false
+guest-one-time-key-expiration-time: 3600
 public-name: "Zebra Sharing Service"
 public-color: "#425766"
 public-url: "https://127.0.0.1/"
