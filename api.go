@@ -30,7 +30,7 @@ func initRouting(resource string, methods map[string]Endpoint, public bool) {
 	for m := range methods {
 		methodsList = append(methodsList, m)
 	}
-	methodsList = append(methodsList, "OPTIONS")
+	methodsList = append(methodsList, http.MethodOptions)
 	routeResources[resource] = methodsList
 	http.HandleFunc(resource, func(w http.ResponseWriter, r *http.Request) {
 		var status int
@@ -132,6 +132,12 @@ func sendResponse(status int, resp JsonResponse, err error, w http.ResponseWrite
 		}
 		resp = ErrorJsonResponse{status, message}
 	}
-	response, _ := json.Marshal(resp)
-	fmt.Fprint(w, string(response))
+	var responseString string
+	if resp != nil {
+		response, _ := json.Marshal(resp)
+		responseString = string(response)
+	} else {
+		responseString = ""
+	}
+	fmt.Fprint(w, responseString)
 }
